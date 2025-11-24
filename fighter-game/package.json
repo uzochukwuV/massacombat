@@ -1,0 +1,31 @@
+{
+  "name": "massa-fighter-game",
+  "version": "1.0.0",
+  "description": "PvP Fighting Game Smart Contract on Massa Blockchain",
+  "main": "build/main.wasm",
+  "scripts": {
+    "asbuild": "asc assembly/contracts/main.ts --target release --exportRuntime --transform @massalabs/as-transformer",
+    "asbuild:debug": "asc assembly/contracts/main.ts --target debug --exportRuntime --transform @massalabs/as-transformer",
+    "build": "npm run asbuild",
+    "test": "asp --verbose"
+  },
+  "keywords": [
+    "massa",
+    "blockchain",
+    "smart-contract",
+    "assemblyscript",
+    "pvp",
+    "game"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@massalabs/massa-as-sdk": "^3.0.2",
+    "@massalabs/as-types": "^2.1.0"
+  },
+  "devDependencies": {
+    "assemblyscript": "^0.27.34",
+    "@massalabs/as-transformer": "^0.4.0",
+    "@as-pect/cli": "^8.1.0"
+  }
+}
