@@ -73,7 +73,7 @@ async function main(): Promise<void> {
       constructorArgs,
       {
         coins: Mas.fromString('5'), // Deploy with 5 MAS for storage
-        maxGas: BigInt(4_000_000_000), // Max gas for deployment
+        maxGas: BigInt(3_000_000_000), // Max gas for deployment
       }
     );
 

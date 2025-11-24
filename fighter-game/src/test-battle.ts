@@ -668,13 +668,37 @@ async function main(): Promise<void> {
       'game_readCharacter',
       new Args().addString(char1Id)
     );
+    console.log(finalChar1Result)
     const finalChar1Args = new Args(finalChar1Result.value);
-    // Skip to wins/losses/mmr
-    for (let i = 0; i < 16; i++) finalChar1Args.nextString(); // skip equipment and skills
-    // Actually, let me just read the full structure again
-    const finalChar1 = {
-      id: new Args(finalChar1Result.value).nextString(),
+    const character = {
+
+      id: finalChar1Args.nextString(),
+      owner: finalChar1Args.nextString(),
+      name: finalChar1Args.nextString(),
+      characterClass: finalChar1Args.nextU8(),
+      level: finalChar1Args.nextU8(),
+      xp: finalChar1Args.nextU64(),
+      hp: finalChar1Args.nextU16(),
+      maxHp: finalChar1Args.nextU16(),
+      damageMin: finalChar1Args.nextU8(),
+      damageMax: finalChar1Args.nextU8(),
+      critChance: finalChar1Args.nextU8(),
+      dodgeChance: finalChar1Args.nextU8(),
+      defense: finalChar1Args.nextU8(),
+      weaponId: finalChar1Args.nextString(),
+      armorId: finalChar1Args.nextString(),
+      accessoryId: finalChar1Args.nextString(),
+      skillSlot1: finalChar1Args.nextU8(),
+      skillSlot2: finalChar1Args.nextU8(),
+      skillSlot3: finalChar1Args.nextU8(),
+      learnedSkills: finalChar1Args.nextU16(),
+      totalWins: finalChar1Args.nextU32(),
+      totalLosses: finalChar1Args.nextU32(),
+      mmr: finalChar1Args.nextU64(),
+      winStreak: finalChar1Args.nextU8(),
+      createdAt: finalChar1Args.nextU64(),
     };
+    console.log(character)
 
     // Get character rank
     const rankResult = await contract.read(

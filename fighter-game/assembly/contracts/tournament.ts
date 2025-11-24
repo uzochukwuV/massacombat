@@ -291,17 +291,17 @@ function finalizeTournament(
   const runnerUpChar = loadCharacter(runnerUpId);
 
   if (winnerChar != null) {
-    transferCoins(new Address(winnerChar!.owner), winnerPrize);
+    transferCoins(new Address(winnerChar.owner), winnerPrize);
   }
 
   if (runnerUpChar != null) {
-    transferCoins(new Address(runnerUpChar!.owner), runnerUpPrize);
+    transferCoins(new Address(runnerUpChar.owner), runnerUpPrize);
   }
 
   if (tournament.thirdPlaceId.length > 0) {
     const thirdChar = loadCharacter(tournament.thirdPlaceId);
     if (thirdChar != null) {
-      transferCoins(new Address(thirdChar!.owner), thirdPlacePrize);
+      transferCoins(new Address(thirdChar.owner), thirdPlacePrize);
     }
   } else {
     // No third place, add to treasury

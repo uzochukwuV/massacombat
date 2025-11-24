@@ -648,5 +648,5 @@ export function getBattleStateName(state: u8): string {
 export function isBattleActive(battleId: string): bool {
   const battle = loadBattle(battleId);
   if (battle == null) return false;
-  return battle!.state == BATTLE_STATE_ACTIVE || battle!.state == BATTLE_STATE_WILDCARD;
+  return battle.state == BATTLE_STATE_ACTIVE || battle.state == BATTLE_STATE_WILDCARD;
 }

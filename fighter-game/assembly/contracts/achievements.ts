@@ -320,14 +320,14 @@ export function checkAllAchievements(ownerAddress: string): void {
   for (let i = 0; i < characterIds.length; i++) {
     const character = loadCharacter(characterIds[i]);
     if (character != null) {
-      totalWins += character!.totalWins;
-      if (character!.winStreak > maxStreak) {
-        maxStreak = character!.winStreak;
+      totalWins += character.totalWins;
+      if (character.winStreak > maxStreak) {
+        maxStreak = character.winStreak;
       }
-      if (character!.level >= MAX_LEVEL) {
+      if (character.level >= MAX_LEVEL) {
         hasMaxLevel = true;
       }
-      if (getLearnedSkillCount(character!) >= 10) {
+      if (getLearnedSkillCount(character) >= 10) {
         hasSkillMaster = true;
       }
     }
@@ -346,7 +346,7 @@ export function checkAllAchievements(ownerAddress: string): void {
   const equipmentIds = getOwnerEquipment(ownerAddress);
   for (let i = 0; i < equipmentIds.length; i++) {
     const equipment = loadEquipment(equipmentIds[i]);
-    if (equipment != null && equipment!.rarity == RARITY_LEGENDARY) {
+    if (equipment != null && equipment.rarity == RARITY_LEGENDARY) {
       updated = unlockAchievement(tracker, ACH_LEGENDARY_EQUIP) || updated;
       break;
     }
