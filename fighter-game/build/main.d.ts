@@ -228,3 +228,100 @@ export declare function game_getAdmin(_: ArrayLike<number>): ArrayLike<number>;
  * @returns `~lib/staticarray/StaticArray<u8>`
  */
 export declare function game_isBattleActive(binaryArgs: ArrayLike<number>): ArrayLike<number>;
+/**
+ * assembly/contracts/main/game_scheduleMatch
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_scheduleMatch(binaryArgs: ArrayLike<number>): void;
+/**
+ * assembly/contracts/main/game_placePrediction
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_placePrediction(binaryArgs: ArrayLike<number>): void;
+/**
+ * assembly/contracts/main/game_lockMarket
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_lockMarket(binaryArgs: ArrayLike<number>): void;
+/**
+ * assembly/contracts/main/game_executeScheduledMatch
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_executeScheduledMatch(binaryArgs: ArrayLike<number>): void;
+/**
+ * assembly/contracts/main/game_resolveMarket
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_resolveMarket(binaryArgs: ArrayLike<number>): void;
+/**
+ * assembly/contracts/main/game_claimWinnings
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_claimWinnings(binaryArgs: ArrayLike<number>): void;
+/**
+ * assembly/contracts/main/game_cancelMatch
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_cancelMatch(binaryArgs: ArrayLike<number>): void;
+/**
+ * assembly/contracts/main/game_autonomousLockMarket
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_autonomousLockMarket(binaryArgs: ArrayLike<number>): void;
+/**
+ * assembly/contracts/main/game_autonomousExecuteMatch
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_autonomousExecuteMatch(binaryArgs: ArrayLike<number>): void;
+/**
+ * assembly/contracts/main/game_autonomousResolveMarket
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_autonomousResolveMarket(binaryArgs: ArrayLike<number>): void;
+/**
+ * assembly/contracts/main/game_autonomousCleanup
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_autonomousCleanup(binaryArgs: ArrayLike<number>): void;
+/**
+ * assembly/contracts/main/game_readScheduledMatch
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ * @returns `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_readScheduledMatch(binaryArgs: ArrayLike<number>): ArrayLike<number>;
+/**
+ * assembly/contracts/main/game_readPredictionMarket
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ * @returns `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_readPredictionMarket(binaryArgs: ArrayLike<number>): ArrayLike<number>;
+/**
+ * assembly/contracts/main/game_readPrediction
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ * @returns `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_readPrediction(binaryArgs: ArrayLike<number>): ArrayLike<number>;
+/**
+ * assembly/contracts/main/game_readUserPredictions
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ * @returns `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_readUserPredictions(binaryArgs: ArrayLike<number>): ArrayLike<number>;
+/**
+ * assembly/contracts/main/game_readMarketPredictions
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ * @returns `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_readMarketPredictions(binaryArgs: ArrayLike<number>): ArrayLike<number>;
+/**
+ * assembly/contracts/main/game_getMarketInfo
+ * @param binaryArgs `~lib/staticarray/StaticArray<u8>`
+ * @returns `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_getMarketInfo(binaryArgs: ArrayLike<number>): ArrayLike<number>;
+/**
+ * assembly/contracts/main/game_getUpcomingMatches
+ * @param _ `~lib/staticarray/StaticArray<u8>`
+ * @returns `~lib/staticarray/StaticArray<u8>`
+ */
+export declare function game_getUpcomingMatches(_: ArrayLike<number>): ArrayLike<number>;

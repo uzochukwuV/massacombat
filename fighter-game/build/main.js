@@ -269,6 +269,96 @@ async function instantiate(module, imports = {}) {
       binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
       return __liftStaticArray(__getU8, 0, exports.game_isBattleActive(binaryArgs) >>> 0);
     },
+    game_scheduleMatch(binaryArgs) {
+      // assembly/contracts/main/game_scheduleMatch(~lib/staticarray/StaticArray<u8>) => void
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      exports.game_scheduleMatch(binaryArgs);
+    },
+    game_placePrediction(binaryArgs) {
+      // assembly/contracts/main/game_placePrediction(~lib/staticarray/StaticArray<u8>) => void
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      exports.game_placePrediction(binaryArgs);
+    },
+    game_lockMarket(binaryArgs) {
+      // assembly/contracts/main/game_lockMarket(~lib/staticarray/StaticArray<u8>) => void
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      exports.game_lockMarket(binaryArgs);
+    },
+    game_executeScheduledMatch(binaryArgs) {
+      // assembly/contracts/main/game_executeScheduledMatch(~lib/staticarray/StaticArray<u8>) => void
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      exports.game_executeScheduledMatch(binaryArgs);
+    },
+    game_resolveMarket(binaryArgs) {
+      // assembly/contracts/main/game_resolveMarket(~lib/staticarray/StaticArray<u8>) => void
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      exports.game_resolveMarket(binaryArgs);
+    },
+    game_claimWinnings(binaryArgs) {
+      // assembly/contracts/main/game_claimWinnings(~lib/staticarray/StaticArray<u8>) => void
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      exports.game_claimWinnings(binaryArgs);
+    },
+    game_cancelMatch(binaryArgs) {
+      // assembly/contracts/main/game_cancelMatch(~lib/staticarray/StaticArray<u8>) => void
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      exports.game_cancelMatch(binaryArgs);
+    },
+    game_autonomousLockMarket(binaryArgs) {
+      // assembly/contracts/main/game_autonomousLockMarket(~lib/staticarray/StaticArray<u8>) => void
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      exports.game_autonomousLockMarket(binaryArgs);
+    },
+    game_autonomousExecuteMatch(binaryArgs) {
+      // assembly/contracts/main/game_autonomousExecuteMatch(~lib/staticarray/StaticArray<u8>) => void
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      exports.game_autonomousExecuteMatch(binaryArgs);
+    },
+    game_autonomousResolveMarket(binaryArgs) {
+      // assembly/contracts/main/game_autonomousResolveMarket(~lib/staticarray/StaticArray<u8>) => void
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      exports.game_autonomousResolveMarket(binaryArgs);
+    },
+    game_autonomousCleanup(binaryArgs) {
+      // assembly/contracts/main/game_autonomousCleanup(~lib/staticarray/StaticArray<u8>) => void
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      exports.game_autonomousCleanup(binaryArgs);
+    },
+    game_readScheduledMatch(binaryArgs) {
+      // assembly/contracts/main/game_readScheduledMatch(~lib/staticarray/StaticArray<u8>) => ~lib/staticarray/StaticArray<u8>
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      return __liftStaticArray(__getU8, 0, exports.game_readScheduledMatch(binaryArgs) >>> 0);
+    },
+    game_readPredictionMarket(binaryArgs) {
+      // assembly/contracts/main/game_readPredictionMarket(~lib/staticarray/StaticArray<u8>) => ~lib/staticarray/StaticArray<u8>
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      return __liftStaticArray(__getU8, 0, exports.game_readPredictionMarket(binaryArgs) >>> 0);
+    },
+    game_readPrediction(binaryArgs) {
+      // assembly/contracts/main/game_readPrediction(~lib/staticarray/StaticArray<u8>) => ~lib/staticarray/StaticArray<u8>
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      return __liftStaticArray(__getU8, 0, exports.game_readPrediction(binaryArgs) >>> 0);
+    },
+    game_readUserPredictions(binaryArgs) {
+      // assembly/contracts/main/game_readUserPredictions(~lib/staticarray/StaticArray<u8>) => ~lib/staticarray/StaticArray<u8>
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      return __liftStaticArray(__getU8, 0, exports.game_readUserPredictions(binaryArgs) >>> 0);
+    },
+    game_readMarketPredictions(binaryArgs) {
+      // assembly/contracts/main/game_readMarketPredictions(~lib/staticarray/StaticArray<u8>) => ~lib/staticarray/StaticArray<u8>
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      return __liftStaticArray(__getU8, 0, exports.game_readMarketPredictions(binaryArgs) >>> 0);
+    },
+    game_getMarketInfo(binaryArgs) {
+      // assembly/contracts/main/game_getMarketInfo(~lib/staticarray/StaticArray<u8>) => ~lib/staticarray/StaticArray<u8>
+      binaryArgs = __lowerStaticArray(__setU8, 5, 0, binaryArgs, Uint8Array) || __notnull();
+      return __liftStaticArray(__getU8, 0, exports.game_getMarketInfo(binaryArgs) >>> 0);
+    },
+    game_getUpcomingMatches(_) {
+      // assembly/contracts/main/game_getUpcomingMatches(~lib/staticarray/StaticArray<u8>) => ~lib/staticarray/StaticArray<u8>
+      _ = __lowerStaticArray(__setU8, 5, 0, _, Uint8Array) || __notnull();
+      return __liftStaticArray(__getU8, 0, exports.game_getUpcomingMatches(_) >>> 0);
+    },
   }, exports);
   function __liftString(pointer) {
     if (!pointer) return null;
@@ -389,6 +479,24 @@ export const {
   game_isPaused,
   game_getAdmin,
   game_isBattleActive,
+  game_scheduleMatch,
+  game_placePrediction,
+  game_lockMarket,
+  game_executeScheduledMatch,
+  game_resolveMarket,
+  game_claimWinnings,
+  game_cancelMatch,
+  game_autonomousLockMarket,
+  game_autonomousExecuteMatch,
+  game_autonomousResolveMarket,
+  game_autonomousCleanup,
+  game_readScheduledMatch,
+  game_readPredictionMarket,
+  game_readPrediction,
+  game_readUserPredictions,
+  game_readMarketPredictions,
+  game_getMarketInfo,
+  game_getUpcomingMatches,
 } = await (async url => instantiate(
   await (async () => {
     const isNodeOrBun = typeof process != "undefined" && process.versions != null && (process.versions.node != null || process.versions.bun != null);
