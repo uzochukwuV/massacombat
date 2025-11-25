@@ -4,6 +4,11 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [
+    // Add any dynamic classes here that won't be caught by content scan
+    // Example: regex patterns for frequently used classes
+    { pattern: /^(btn-|badge-|card-|stat-|text-glow|spinner|table-|clip-)/ },
+  ],
   theme: {
     extend: {
       colors: {

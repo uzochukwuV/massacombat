@@ -1,9 +1,7 @@
-import UserDashboardWrapper from "./pages/UserDashboardWrapper"
-
-
+import { Landing } from "./pages/Landing"
 
 export default function Home() {
   return <>
-  <UserDashboardWrapper />
+  <Landing />
   </>
 }

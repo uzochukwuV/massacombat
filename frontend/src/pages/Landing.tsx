@@ -1,18 +1,10 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useGame } from '@/context/GameContext';
 import { Button } from '@/components/ui/Button';
 
 export function Landing() {
   const { isConnected, connect, loading } = useGame();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (isConnected) {
-      navigate('/character-select');
-    }
-  }, [isConnected, navigate]);
-
+ 
   return (
     <div className="min-h-screen flex items-center justify-center cyber-grid relative overflow-hidden">
       {/* Animated background glow */}
