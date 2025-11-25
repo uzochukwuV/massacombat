@@ -88,6 +88,25 @@ export const ACH_SKILL_MASTER: u8 = 8;
 export const ACH_LEGENDARY_EQUIP: u8 = 9;
 export const ACH_MAX_LEVEL: u8 = 10;
 
+// Scheduled Match States
+export const MATCH_STATE_SCHEDULED: u8 = 0;   // Accepting predictions
+export const MATCH_STATE_LOCKED: u8 = 1;      // Predictions closed, awaiting execution
+export const MATCH_STATE_EXECUTING: u8 = 2;   // Match in progress
+export const MATCH_STATE_COMPLETED: u8 = 3;   // Match finished, winnings distributed
+export const MATCH_STATE_CANCELLED: u8 = 4;   // Match cancelled, refunds issued
+
+// Prediction Market Config
+export const MIN_PREDICTION_AMOUNT: u64 = 100_000_000;  // 0.1 MAS minimum bet
+export const PREDICTION_LOCK_TIME: u64 = 300_000;       // 5 minutes in ms
+export const HOUSE_FEE_PERCENT: u8 = 5;                 // 5% house edge
+
+// Autonomous Execution Fees
+export const AUTO_LOCK_FEE: u64 = 10_000_000;      // 0.01 MAS
+export const AUTO_EXECUTION_FEE: u64 = 50_000_000;  // 0.05 MAS
+export const AUTO_RESOLUTION_FEE: u64 = 100_000_000; // 0.1 MAS
+export const AUTO_CLEANUP_FEE: u64 = 20_000_000;    // 0.02 MAS
+export const TOTAL_AUTO_FEE: u64 = 180_000_000;     // 0.18 MAS total
+
 // Storage Keys Prefixes
 export const KEY_CHARACTER: string = 'char_';
 export const KEY_EQUIPMENT: string = 'equip_';
@@ -898,6 +917,287 @@ export class AchievementTracker implements Serializable {
     const tsRes = args.nextString();
     if (tsRes.isErr()) return new Result(0, 'Failed');
     this.timestamps = tsRes.unwrap();
+
+    return new Result(args.offset);
+  }
+}
+
+// ============================================================================
+// Prediction Market System
+// ============================================================================
+
+/**
+ * Scheduled Match for prediction markets
+ */
+@serializable
+export class ScheduledMatch implements Serializable {
+  matchId: string = '';
+  character1Id: string = '';
+  character2Id: string = '';
+
+  // Timing
+  scheduledTime: u64 = 0;     // Timestamp when match will occur
+  createdAt: u64 = 0;
+  lockTime: u64 = 0;          // When predictions close (5 min before)
+
+  // State
+  state: u8 = 0;              // MATCH_STATE_*
+
+  // Result
+  winnerId: string = '';       // Winner character ID (empty until completed)
+  battleId: string = '';       // Associated battle ID once executed
+
+  // Market Info
+  marketId: string = '';       // Associated prediction market ID
+
+  // Metadata
+  creator: string = '';        // Who scheduled this match
+  description: string = '';    // Match description/title
+
+  serialize(): StaticArray<u8> {
+    const args = new Args();
+    args.add(this.matchId);
+    args.add(this.character1Id);
+    args.add(this.character2Id);
+    args.add(this.scheduledTime);
+    args.add(this.createdAt);
+    args.add(this.lockTime);
+    args.add(this.state);
+    args.add(this.winnerId);
+    args.add(this.battleId);
+    args.add(this.marketId);
+    args.add(this.creator);
+    args.add(this.description);
+    return args.serialize();
+  }
+
+  deserialize(data: StaticArray<u8>, offset: i32 = 0): Result<i32> {
+    const args = new Args(data, offset);
+
+    const matchIdRes = args.nextString();
+    if (matchIdRes.isErr()) return new Result(0, 'Failed');
+    this.matchId = matchIdRes.unwrap();
+
+    const char1Res = args.nextString();
+    if (char1Res.isErr()) return new Result(0, 'Failed');
+    this.character1Id = char1Res.unwrap();
+
+    const char2Res = args.nextString();
+    if (char2Res.isErr()) return new Result(0, 'Failed');
+    this.character2Id = char2Res.unwrap();
+
+    const schedTimeRes = args.nextU64();
+    if (schedTimeRes.isErr()) return new Result(0, 'Failed');
+    this.scheduledTime = schedTimeRes.unwrap();
+
+    const createdRes = args.nextU64();
+    if (createdRes.isErr()) return new Result(0, 'Failed');
+    this.createdAt = createdRes.unwrap();
+
+    const lockRes = args.nextU64();
+    if (lockRes.isErr()) return new Result(0, 'Failed');
+    this.lockTime = lockRes.unwrap();
+
+    const stateRes = args.nextU8();
+    if (stateRes.isErr()) return new Result(0, 'Failed');
+    this.state = stateRes.unwrap();
+
+    const winnerRes = args.nextString();
+    if (winnerRes.isErr()) return new Result(0, 'Failed');
+    this.winnerId = winnerRes.unwrap();
+
+    const battleRes = args.nextString();
+    if (battleRes.isErr()) return new Result(0, 'Failed');
+    this.battleId = battleRes.unwrap();
+
+    const marketRes = args.nextString();
+    if (marketRes.isErr()) return new Result(0, 'Failed');
+    this.marketId = marketRes.unwrap();
+
+    const creatorRes = args.nextString();
+    if (creatorRes.isErr()) return new Result(0, 'Failed');
+    this.creator = creatorRes.unwrap();
+
+    const descRes = args.nextString();
+    if (descRes.isErr()) return new Result(0, 'Failed');
+    this.description = descRes.unwrap();
+
+    return new Result(args.offset);
+  }
+}
+
+/**
+ * Prediction Market
+ */
+@serializable
+export class PredictionMarket implements Serializable {
+  marketId: string = '';
+  matchId: string = '';        // Associated scheduled match
+
+  // Pool Tracking
+  totalPool: u64 = 0;          // Total MAS in pool
+  char1Pool: u64 = 0;          // MAS bet on character 1
+  char2Pool: u64 = 0;          // MAS bet on character 2
+
+  // Prediction Counts
+  char1PredictionCount: u32 = 0;
+  char2PredictionCount: u32 = 0;
+
+  // State
+  isOpen: bool = true;         // Whether accepting predictions
+  isResolved: bool = false;    // Whether winnings distributed
+
+  // House Edge
+  houseFeePercent: u8 = 5;     // 5% house edge
+  houseFee: u64 = 0;           // Actual fee collected
+
+  // Result
+  winnerId: string = '';       // Winning character ID
+
+  createdAt: u64 = 0;
+
+  serialize(): StaticArray<u8> {
+    const args = new Args();
+    args.add(this.marketId);
+    args.add(this.matchId);
+    args.add(this.totalPool);
+    args.add(this.char1Pool);
+    args.add(this.char2Pool);
+    args.add(this.char1PredictionCount);
+    args.add(this.char2PredictionCount);
+    args.add(this.isOpen);
+    args.add(this.isResolved);
+    args.add(this.houseFeePercent);
+    args.add(this.houseFee);
+    args.add(this.winnerId);
+    args.add(this.createdAt);
+    return args.serialize();
+  }
+
+  deserialize(data: StaticArray<u8>, offset: i32 = 0): Result<i32> {
+    const args = new Args(data, offset);
+
+    const marketIdRes = args.nextString();
+    if (marketIdRes.isErr()) return new Result(0, 'Failed');
+    this.marketId = marketIdRes.unwrap();
+
+    const matchIdRes = args.nextString();
+    if (matchIdRes.isErr()) return new Result(0, 'Failed');
+    this.matchId = matchIdRes.unwrap();
+
+    const totalRes = args.nextU64();
+    if (totalRes.isErr()) return new Result(0, 'Failed');
+    this.totalPool = totalRes.unwrap();
+
+    const char1PoolRes = args.nextU64();
+    if (char1PoolRes.isErr()) return new Result(0, 'Failed');
+    this.char1Pool = char1PoolRes.unwrap();
+
+    const char2PoolRes = args.nextU64();
+    if (char2PoolRes.isErr()) return new Result(0, 'Failed');
+    this.char2Pool = char2PoolRes.unwrap();
+
+    const char1CountRes = args.nextU32();
+    if (char1CountRes.isErr()) return new Result(0, 'Failed');
+    this.char1PredictionCount = char1CountRes.unwrap();
+
+    const char2CountRes = args.nextU32();
+    if (char2CountRes.isErr()) return new Result(0, 'Failed');
+    this.char2PredictionCount = char2CountRes.unwrap();
+
+    const openRes = args.nextBool();
+    if (openRes.isErr()) return new Result(0, 'Failed');
+    this.isOpen = openRes.unwrap();
+
+    const resolvedRes = args.nextBool();
+    if (resolvedRes.isErr()) return new Result(0, 'Failed');
+    this.isResolved = resolvedRes.unwrap();
+
+    const feePercentRes = args.nextU8();
+    if (feePercentRes.isErr()) return new Result(0, 'Failed');
+    this.houseFeePercent = feePercentRes.unwrap();
+
+    const houseFeeRes = args.nextU64();
+    if (houseFeeRes.isErr()) return new Result(0, 'Failed');
+    this.houseFee = houseFeeRes.unwrap();
+
+    const winnerRes = args.nextString();
+    if (winnerRes.isErr()) return new Result(0, 'Failed');
+    this.winnerId = winnerRes.unwrap();
+
+    const createdRes = args.nextU64();
+    if (createdRes.isErr()) return new Result(0, 'Failed');
+    this.createdAt = createdRes.unwrap();
+
+    return new Result(args.offset);
+  }
+}
+
+/**
+ * Individual Prediction
+ */
+@serializable
+export class Prediction implements Serializable {
+  predictionId: string = '';
+  marketId: string = '';
+  predictor: string = '';      // Address who made prediction
+
+  predictedWinnerId: string = '';  // Character they bet on
+  amount: u64 = 0;             // Amount bet in nanoMAS
+
+  // Payout
+  payout: u64 = 0;             // Amount won (0 if lost)
+  claimed: bool = false;       // Whether winnings claimed
+
+  timestamp: u64 = 0;
+
+  serialize(): StaticArray<u8> {
+    const args = new Args();
+    args.add(this.predictionId);
+    args.add(this.marketId);
+    args.add(this.predictor);
+    args.add(this.predictedWinnerId);
+    args.add(this.amount);
+    args.add(this.payout);
+    args.add(this.claimed);
+    args.add(this.timestamp);
+    return args.serialize();
+  }
+
+  deserialize(data: StaticArray<u8>, offset: i32 = 0): Result<i32> {
+    const args = new Args(data, offset);
+
+    const predIdRes = args.nextString();
+    if (predIdRes.isErr()) return new Result(0, 'Failed');
+    this.predictionId = predIdRes.unwrap();
+
+    const marketIdRes = args.nextString();
+    if (marketIdRes.isErr()) return new Result(0, 'Failed');
+    this.marketId = marketIdRes.unwrap();
+
+    const predictorRes = args.nextString();
+    if (predictorRes.isErr()) return new Result(0, 'Failed');
+    this.predictor = predictorRes.unwrap();
+
+    const winnerIdRes = args.nextString();
+    if (winnerIdRes.isErr()) return new Result(0, 'Failed');
+    this.predictedWinnerId = winnerIdRes.unwrap();
+
+    const amountRes = args.nextU64();
+    if (amountRes.isErr()) return new Result(0, 'Failed');
+    this.amount = amountRes.unwrap();
+
+    const payoutRes = args.nextU64();
+    if (payoutRes.isErr()) return new Result(0, 'Failed');
+    this.payout = payoutRes.unwrap();
+
+    const claimedRes = args.nextBool();
+    if (claimedRes.isErr()) return new Result(0, 'Failed');
+    this.claimed = claimedRes.unwrap();
+
+    const timestampRes = args.nextU64();
+    if (timestampRes.isErr()) return new Result(0, 'Failed');
+    this.timestamp = timestampRes.unwrap();
 
     return new Result(args.offset);
   }

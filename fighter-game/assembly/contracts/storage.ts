@@ -370,3 +370,112 @@ export function getOwnerEquipment(owner: string): string[] {
   if (equips.length == 0) return [];
   return equips.split(',');
 }
+
+// ============================================================================
+// Prediction Market Storage
+// ============================================================================
+
+import {
+  ScheduledMatch,
+  PredictionMarket,
+  Prediction,
+} from './types';
+
+// Storage key prefixes
+const KEY_SCHEDULED_MATCH: string = 'smatch_';
+const KEY_PREDICTION_MARKET: string = 'pmarket_';
+const KEY_PREDICTION: string = 'pred_';
+const KEY_USER_PREDICTIONS: string = 'upreds_';   // address -> prediction IDs
+const KEY_MARKET_PREDICTIONS: string = 'mpreds_'; // market -> prediction IDs
+const KEY_ALL_MATCHES: string = 'allmatches';     // comma-separated match IDs
+
+// Scheduled Match Storage
+export function saveScheduledMatch(match: ScheduledMatch): void {
+  setBytes(KEY_SCHEDULED_MATCH + match.matchId, match.serialize());
+
+  // Add to all matches list
+  const allMatches = getString(KEY_ALL_MATCHES);
+  if (allMatches.length == 0) {
+    setString(KEY_ALL_MATCHES, match.matchId);
+  } else {
+    setString(KEY_ALL_MATCHES, allMatches + ',' + match.matchId);
+  }
+}
+
+export function loadScheduledMatch(matchId: string): ScheduledMatch | null {
+  const data = getBytes(KEY_SCHEDULED_MATCH + matchId);
+  if (data.length == 0) return null;
+  const match = new ScheduledMatch();
+  match.deserialize(data);
+  return match;
+}
+
+export function matchExists(matchId: string): bool {
+  return hasKey(KEY_SCHEDULED_MATCH + matchId);
+}
+
+export function getAllMatches(): string[] {
+  const matches = getString(KEY_ALL_MATCHES);
+  if (matches.length == 0) return [];
+  return matches.split(',');
+}
+
+// Prediction Market Storage
+export function savePredictionMarket(market: PredictionMarket): void {
+  setBytes(KEY_PREDICTION_MARKET + market.marketId, market.serialize());
+}
+
+export function loadPredictionMarket(marketId: string): PredictionMarket | null {
+  const data = getBytes(KEY_PREDICTION_MARKET + marketId);
+  if (data.length == 0) return null;
+  const market = new PredictionMarket();
+  market.deserialize(data);
+  return market;
+}
+
+// Prediction Storage
+export function savePrediction(prediction: Prediction): void {
+  setBytes(KEY_PREDICTION + prediction.predictionId, prediction.serialize());
+}
+
+export function loadPrediction(predictionId: string): Prediction | null {
+  const data = getBytes(KEY_PREDICTION + predictionId);
+  if (data.length == 0) return null;
+  const pred = new Prediction();
+  pred.deserialize(data);
+  return pred;
+}
+
+// User Predictions Tracking
+export function addUserPrediction(userAddress: string, predictionId: string): void {
+  const key = KEY_USER_PREDICTIONS + userAddress;
+  let preds = getString(key);
+  if (preds.length > 0) {
+    preds += ',';
+  }
+  preds += predictionId;
+  setString(key, preds);
+}
+
+export function getUserPredictions(userAddress: string): string[] {
+  const preds = getString(KEY_USER_PREDICTIONS + userAddress);
+  if (preds.length == 0) return [];
+  return preds.split(',');
+}
+
+// Market Predictions Tracking
+export function addMarketPrediction(marketId: string, predictionId: string): void {
+  const key = KEY_MARKET_PREDICTIONS + marketId;
+  let preds = getString(key);
+  if (preds.length > 0) {
+    preds += ',';
+  }
+  preds += predictionId;
+  setString(key, preds);
+}
+
+export function getMarketPredictions(marketId: string): string[] {
+  const preds = getString(KEY_MARKET_PREDICTIONS + marketId);
+  if (preds.length == 0) return [];
+  return preds.split(',');
+}

@@ -112,6 +112,27 @@ import {
   CHARACTER_CREATION_FEE,
 } from './treasury';
 
+import {
+  scheduleMatch as _scheduleMatch,
+  placePrediction as _placePrediction,
+  lockMarket as _lockMarket,
+  executeScheduledMatch as _executeScheduledMatch,
+  resolveMarket as _resolveMarket,
+  claimWinnings as _claimWinnings,
+  cancelMatch as _cancelMatch,
+  autonomousLockMarket as _autonomousLockMarket,
+  autonomousExecuteMatch as _autonomousExecuteMatch,
+  autonomousResolveMarket as _autonomousResolveMarket,
+  autonomousCleanup as _autonomousCleanup,
+  readScheduledMatch,
+  readPredictionMarket,
+  readPrediction,
+  readUserPredictions,
+  readMarketPredictions,
+  getMarketInfo,
+  getUpcomingMatches,
+} from './prediction';
+
 // ============================================================================
 // Modifiers (Security)
 // ============================================================================
@@ -705,5 +726,233 @@ export function game_isBattleActive(binaryArgs: StaticArray<u8>): StaticArray<u8
 
   const result = new Args();
   result.add(isBattleActive(battleId));
+  return result.serialize();
+}
+
+// ============================================================================
+// Prediction Market Functions
+// ============================================================================
+
+/**
+ * Schedule a match with autonomous execution
+ */
+export function game_scheduleMatch(binaryArgs: StaticArray<u8>): void {
+  requireNotPaused();
+  requireNoReentrancy();
+
+  const args = new Args(binaryArgs);
+  const matchId = args.nextString().expect('Match ID required');
+  const character1Id = args.nextString().expect('Character 1 ID required');
+  const character2Id = args.nextString().expect('Character 2 ID required');
+  const scheduledTime = args.nextU64().expect('Scheduled time required');
+  const description = args.nextString().expect('Description required');
+
+  _scheduleMatch(matchId, character1Id, character2Id, scheduledTime, description);
+
+  releaseReentrancy();
+}
+
+/**
+ * Place a prediction on a scheduled match
+ */
+export function game_placePrediction(binaryArgs: StaticArray<u8>): void {
+  requireNotPaused();
+  requireNoReentrancy();
+
+  const args = new Args(binaryArgs);
+  const marketId = args.nextString().expect('Market ID required');
+  const predictedWinnerId = args.nextString().expect('Predicted winner required');
+
+  _placePrediction(marketId, predictedWinnerId);
+
+  releaseReentrancy();
+}
+
+/**
+ * Lock market (can be called by anyone)
+ */
+export function game_lockMarket(binaryArgs: StaticArray<u8>): void {
+  requireNotPaused();
+
+  const args = new Args(binaryArgs);
+  const marketId = args.nextString().expect('Market ID required');
+
+  _lockMarket(marketId);
+}
+
+/**
+ * Execute scheduled match
+ */
+export function game_executeScheduledMatch(binaryArgs: StaticArray<u8>): void {
+  requireNotPaused();
+
+  const args = new Args(binaryArgs);
+  const matchId = args.nextString().expect('Match ID required');
+
+  _executeScheduledMatch(matchId);
+}
+
+/**
+ * Resolve prediction market
+ */
+export function game_resolveMarket(binaryArgs: StaticArray<u8>): void {
+  requireNotPaused();
+
+  const args = new Args(binaryArgs);
+  const marketId = args.nextString().expect('Market ID required');
+
+  _resolveMarket(marketId);
+}
+
+/**
+ * Claim winnings from a prediction
+ */
+export function game_claimWinnings(binaryArgs: StaticArray<u8>): void {
+  requireNotPaused();
+  requireNoReentrancy();
+
+  const args = new Args(binaryArgs);
+  const predictionId = args.nextString().expect('Prediction ID required');
+
+  _claimWinnings(predictionId);
+
+  releaseReentrancy();
+}
+
+/**
+ * Cancel a scheduled match
+ */
+export function game_cancelMatch(binaryArgs: StaticArray<u8>): void {
+  requireNotPaused();
+  requireNoReentrancy();
+
+  const args = new Args(binaryArgs);
+  const matchId = args.nextString().expect('Match ID required');
+
+  _cancelMatch(matchId);
+
+  releaseReentrancy();
+}
+
+// ============================================================================
+// Autonomous Execution Functions (called by Massa protocol)
+// ============================================================================
+
+/**
+ * Autonomously lock market
+ */
+export function game_autonomousLockMarket(binaryArgs: StaticArray<u8>): void {
+  const args = new Args(binaryArgs);
+  const marketId = args.nextString().expect('Market ID required');
+
+  _autonomousLockMarket(marketId);
+}
+
+/**
+ * Autonomously execute match
+ */
+export function game_autonomousExecuteMatch(binaryArgs: StaticArray<u8>): void {
+  const args = new Args(binaryArgs);
+  const matchId = args.nextString().expect('Match ID required');
+
+  _autonomousExecuteMatch(matchId);
+}
+
+/**
+ * Autonomously resolve market
+ */
+export function game_autonomousResolveMarket(binaryArgs: StaticArray<u8>): void {
+  const args = new Args(binaryArgs);
+  const marketId = args.nextString().expect('Market ID required');
+
+  _autonomousResolveMarket(marketId);
+}
+
+/**
+ * Autonomous cleanup for abandoned matches
+ */
+export function game_autonomousCleanup(binaryArgs: StaticArray<u8>): void {
+  const args = new Args(binaryArgs);
+  const matchId = args.nextString().expect('Match ID required');
+
+  _autonomousCleanup(matchId);
+}
+
+// ============================================================================
+// Prediction Market Query Functions
+// ============================================================================
+
+/**
+ * Read scheduled match
+ */
+export function game_readScheduledMatch(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+  const args = new Args(binaryArgs);
+  const matchId = args.nextString().expect('Match ID required');
+
+  return readScheduledMatch(matchId);
+}
+
+/**
+ * Read prediction market
+ */
+export function game_readPredictionMarket(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+  const args = new Args(binaryArgs);
+  const marketId = args.nextString().expect('Market ID required');
+
+  return readPredictionMarket(marketId);
+}
+
+/**
+ * Read prediction
+ */
+export function game_readPrediction(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+  const args = new Args(binaryArgs);
+  const predictionId = args.nextString().expect('Prediction ID required');
+
+  return readPrediction(predictionId);
+}
+
+/**
+ * Get user predictions
+ */
+export function game_readUserPredictions(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+  const args = new Args(binaryArgs);
+  const userAddress = args.nextString().expect('User address required');
+
+  const result = new Args();
+  result.add(readUserPredictions(userAddress));
+  return result.serialize();
+}
+
+/**
+ * Get market predictions
+ */
+export function game_readMarketPredictions(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+  const args = new Args(binaryArgs);
+  const marketId = args.nextString().expect('Market ID required');
+
+  const result = new Args();
+  result.add(readMarketPredictions(marketId));
+  return result.serialize();
+}
+
+/**
+ * Get market info with odds
+ */
+export function game_getMarketInfo(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+  const args = new Args(binaryArgs);
+  const marketId = args.nextString().expect('Market ID required');
+
+  const result = new Args();
+  result.add(getMarketInfo(marketId));
+  return result.serialize();
+}
+
+/**
+ * Get upcoming matches
+ */
+export function game_getUpcomingMatches(_: StaticArray<u8>): StaticArray<u8> {
+  const result = new Args();
+  result.add(getUpcomingMatches());
   return result.serialize();
 }
