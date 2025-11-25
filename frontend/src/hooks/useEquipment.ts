@@ -190,6 +190,25 @@ export function useEquipment(
   );
 
   /**
+   * Calculate repair fee based on equipment rarity
+   * Common: 0.1 MAS, Rare: 0.15 MAS, Epic: 0.2 MAS, Legendary: 0.3 MAS
+   */
+  const calculateRepairFee = useCallback((rarity: number): string => {
+    switch (rarity) {
+      case 0: // Common
+        return '0.1';
+      case 1: // Rare
+        return '0.15';
+      case 2: // Epic
+        return '0.2';
+      case 3: // Legendary
+        return '0.3';
+      default:
+        return '0.1';
+    }
+  }, []);
+
+  /**
    * Repair equipment
    * @param equipmentId - Equipment ID
    */
@@ -203,14 +222,21 @@ export function useEquipment(
           throw new Error('Wallet not connected');
         }
 
+        // Get equipment to determine rarity for fee calculation
+        const equipment = await readEquipment(equipmentId);
+        if (!equipment) {
+          throw new Error('Equipment not found');
+        }
+
         const args = new Args().addString(equipmentId);
+        const repairFee = calculateRepairFee(equipment.rarity);
 
         const op = await callContract(
           provider,
           contractAddress,
           'game_repairEquipment',
           args,
-          Mas.fromString('0.2'), // Repair fee varies by rarity
+          Mas.fromString(repairFee),
           BigInt(100_000_000)
         );
 
@@ -224,7 +250,7 @@ export function useEquipment(
         setLoading(false);
       }
     },
-    [isConnected, contractAddress, provider]
+    [isConnected, contractAddress, provider, readEquipment, calculateRepairFee]
   );
 
   /**
@@ -265,6 +291,7 @@ export function useEquipment(
     unequipItem,
     transferEquipment,
     repairEquipment,
+    calculateRepairFee,
     getEquipmentTypeName,
     getRarityName,
     getRarityColor,

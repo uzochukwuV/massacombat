@@ -38,15 +38,26 @@ export function useLeaderboard(contractAddress: string, provider: any) {
           args
         );
 
-        const resultArgs = new Args(result.value);
-        const leaderboardData = resultArgs.nextString();
-
-        if (!leaderboardData) {
+        if (!result || !result.value || result.value.length === 0) {
           return [];
         }
 
-        // Parse leaderboard data (JSON array)
-        const entries = JSON.parse(leaderboardData) as LeaderboardEntry[];
+        const resultArgs = new Args(result.value);
+        const entryCount = resultArgs.nextU32();
+        const entries: LeaderboardEntry[] = [];
+
+        // Parse each leaderboard entry (binary format from contract)
+        for (let i = 0; i < Number(entryCount); i++) {
+          entries.push({
+            rank: i + 1,
+            characterId: resultArgs.nextString(),
+            ownerAddress: resultArgs.nextString(),
+            mmr: Number(resultArgs.nextU64()),
+            wins: Number(resultArgs.nextU32()),
+            losses: Number(resultArgs.nextU32()),
+          });
+        }
+
         return entries;
       } catch (err) {
         const message =

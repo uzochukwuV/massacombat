@@ -110,15 +110,22 @@ export function useAchievements(
           args
         );
 
-        const resultArgs = new Args(result.value);
-        const achievementData = resultArgs.nextString();
-
-        if (!achievementData) {
+        if (!result || !result.value || result.value.length === 0) {
           return null;
         }
 
-        // Parse achievement data
-        const tracker = JSON.parse(achievementData) as AchievementTracker;
+        const resultArgs = new Args(result.value);
+
+        // Parse achievement data (binary format from contract)
+        const tracker: AchievementTracker = {
+          ownerAddress: resultArgs.nextString(),
+          unlockedAchievements: Number(resultArgs.nextU16()),
+          achievements: [],
+        };
+
+        // Get unlocked achievements from bitmask
+        tracker.achievements = getUnlockedAchievements(tracker.unlockedAchievements);
+
         return tracker;
       } catch (err) {
         const message =
@@ -129,7 +136,7 @@ export function useAchievements(
         setLoading(false);
       }
     },
-    [contractAddress, provider]
+    [ loading]
   );
 
   /**

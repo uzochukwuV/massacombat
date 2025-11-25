@@ -10,15 +10,19 @@ import { callContract, readContract } from './useContract';
 export interface Tournament {
   id: string;
   name: string;
-  creator: string;
   entryFee: bigint;
   prizePool: bigint;
-  maxParticipants: number;
-  participants: string[];
-  state: number;
-  currentRound: number;
-  bracket: string[];
-  winner: string;
+  maxParticipants: bigint;
+  currentRound: bigint;
+  state: bigint;
+  participants: string;
+  bracket: string;
+  winnerId: string;
+  runnerUpId: string;
+  thirdPlaceId: string;
+  createdAt: bigint;
+  startedAt: bigint;
+  endedAt: bigint;
 }
 
 export function useTournament(
@@ -268,15 +272,31 @@ export function useTournament(
           args
         );
 
-        const resultArgs = new Args(result.value);
-        const tournamentData = resultArgs.nextString();
-
-        if (!tournamentData || tournamentData === 'Tournament not found') {
+        if (!result || !result.value || result.value.length === 0) {
           return null;
         }
 
-        // Parse tournament data
-        const tournament = JSON.parse(tournamentData) as Tournament;
+        const tournamentArgs = new Args(result.value);
+
+        // Parse tournament data (binary format from contract)
+        const tournament: Tournament = {
+          id: tournamentArgs.nextString(),
+          name: tournamentArgs.nextString(),
+          entryFee: tournamentArgs.nextU64(),
+          prizePool: tournamentArgs.nextU64(),
+          maxParticipants: tournamentArgs.nextU8(),
+          currentRound: tournamentArgs.nextU8(),
+          state: tournamentArgs.nextU8(),
+          participants: tournamentArgs.nextString(),
+          bracket: tournamentArgs.nextString(),
+          winnerId: tournamentArgs.nextString(),
+          runnerUpId: tournamentArgs.nextString(),
+          thirdPlaceId: tournamentArgs.nextString(),
+          createdAt: tournamentArgs.nextU64(),
+          startedAt: tournamentArgs.nextU64(),
+          endedAt: tournamentArgs.nextU64(),
+        };
+
         return tournament;
       } catch (err) {
         console.error('Failed to read tournament:', err);
