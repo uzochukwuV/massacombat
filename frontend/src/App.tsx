@@ -4,6 +4,8 @@ import { Header } from '@/components/layout/Header';
 import { Landing } from '@/pages/Landing';
 import { CharacterSelect } from '@/pages/CharacterSelect';
 import { Dashboard } from '@/pages/Dashboard';
+import { BattleCreate } from '@/pages/BattleCreate';
+import { BattleArena } from '@/pages/BattleArena';
 import '@/styles/globals.css';
 
 // Placeholder pages
@@ -44,7 +46,12 @@ function AppRoutes() {
             } />
             <Route path="/battle" element={
               <ProtectedRoute>
-                <ComingSoon title="⚔️ Battle Arena" />
+                <BattleCreate />
+              </ProtectedRoute>
+            } />
+            <Route path="/battle/:battleId" element={
+              <ProtectedRoute>
+                <BattleArena />
               </ProtectedRoute>
             } />
             <Route path="/equipment" element={
