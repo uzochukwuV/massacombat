@@ -14,6 +14,7 @@ import {
   useAchievements,
   useTreasury,
   type Character,
+  type Equipment,
 } from './hooks';
 import { CLASS_NAMES } from './hooks/useContract';
 
@@ -855,11 +856,6 @@ interface EquipmentViewProps {
   pushActivity: (kind: ActivityKind, title: string, description?: string) => void;
 }
 
-interface LocalEquipment {
-  id: string;
-  summary: string;
-}
-
 function EquipmentView({
   isConnected,
   contractConfigured,
@@ -869,7 +865,7 @@ function EquipmentView({
   onCharacterUpdated,
   pushActivity,
 }: EquipmentViewProps) {
-  const { readCharacter } = characterHook;
+  const { readCharacter, getClassName } = characterHook;
   const {
     readEquipment,
     equipItem,
@@ -878,13 +874,20 @@ function EquipmentView({
     repairEquipment,
     getEquipmentTypeName,
     getRarityName,
+    getRarityColor,
     loading,
     error,
   } = equipmentHook;
 
   const [equipmentId, setEquipmentId] = useState('');
-  const [loadedEquipment, setLoadedEquipment] = useState<LocalEquipment[]>([]);
+  const [loadedEquipment, setLoadedEquipment] = useState<Equipment[]>([]);
   const [selectedCharId, setSelectedCharId] = useState('');
+  const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | null>(null);
+
+  const selectedCharacter =
+    knownCharacters.find((c) => c.id === selectedCharId) ?? null;
+  const selectedEquipment =
+    loadedEquipment.find((e) => e.id === selectedEquipmentId) ?? null;
 
   async function handleLoadEquipment(event: React.FormEvent) {
     event.preventDefault();
@@ -903,14 +906,15 @@ function EquipmentView({
         pushActivity('equipment', 'Equipment not found', equipmentId.trim());
         return;
       }
-      const summary = `${getEquipmentTypeName(
-        equipment.equipmentType,
-      )} · ${getRarityName(equipment.rarity)}`;
+
       setLoadedEquipment((prev) => {
         const exists = prev.find((e) => e.id === equipment.id);
         if (exists) return prev;
-        return [...prev, { id: equipment.id, summary }];
+        return [...prev, equipment];
       });
+      if (!selectedEquipmentId) {
+        setSelectedEquipmentId(equipment.id);
+      }
       pushActivity('equipment', 'Equipment loaded', equipment.id);
     } catch (err) {
       const message =
@@ -981,117 +985,342 @@ function EquipmentView({
     }
   }
 
+  function handleSelectEquipment(id: string) {
+    setSelectedEquipmentId(id);
+  }
+
+  function formatDurability(equipment: Equipment): string {
+    return `${equipment.durability}/${equipment.maxDurability}`;
+  }
+
+  function getEquipmentTag(equipment: Equipment): string {
+    return `${getEquipmentTypeName(equipment.equipmentType)} · ${getRarityName(equipment.rarity)}`;
+  }
+
   return (
     <div className="fg-equipment">
-      <section className="fg-card fg-card-wide">
-        <h1 className="fg-page-title">Equipment</h1>
-        <p className="fg-page-subtitle">
-          Load equipment by ID, then equip it to your fighters or manage transfers and repairs.
-        </p>
-
-        <form className="fg-form fg-form-inline" onSubmit={handleLoadEquipment}>
-          <div className="fg-form-group">
-            <label className="fg-label" htmlFor="equip-id">
-              Equipment ID
-            </label>
-            <input
-              id="equip-id"
-              className="fg-input"
-              value={equipmentId}
-              onChange={(e) => setEquipmentId(e.target.value)}
-              placeholder="e.g. sword-epic-001"
-            />
-          </div>
-          <button
-            type="submit"
-            className="fg-button"
-            disabled={loading}
-          >
-            Load
-          </button>
-        </form>
-
-        {error && (
-          <div className="fg-banner fg-banner-error fg-banner-small">
-            {error}
-          </div>
-        )}
-
-        <div className="fg-form">
-          <div className="fg-form-group">
-            <label className="fg-label" htmlFor="equip-char">
-              Equip / Unequip Character
-            </label>
-            <select
-              id="equip-char"
-              className="fg-input"
-              value={selectedCharId}
-              onChange={(e) => setSelectedCharId(e.target.value)}
-            >
-              <option value="">Select character</option>
-              {knownCharacters.map((character) => (
-                <option key={character.id} value={character.id}>
-                  {character.name} ({character.id})
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </section>
-
-      <section className="fg-card fg-card-wide">
-        <h2 className="fg-section-title">Loaded Equipment</h2>
-        {loadedEquipment.length === 0 ? (
-          <p className="fg-muted">
-            No equipment loaded yet. Enter an equipment ID and click Load to view it here.
+      <section className="fg-card fg-card-wide fg-equipment-hero">
+        <div className="fg-card-header">
+          <h1 className="fg-page-title">Inventory</h1>
+          <p className="fg-page-subtitle">
+            Manage your fighters&apos; equipment, rarity, and stats in a single glance.
           </p>
-        ) : (
-          <div className="fg-equipment-grid">
-            {loadedEquipment.map((item) => (
-              <div key={item.id} className="fg-equipment-card">
-                <div className="fg-equipment-header">
-                  <div className="fg-equipment-id">{item.id}</div>
-                  <div className="fg-equipment-summary">{item.summary}</div>
+        </div>
+
+        <div className="fg-equipment-layout">
+          {/* Left: Character overview */}
+          <div className="fg-equipment-left">
+            <div className="fg-equipment-character-card">
+              <div className="fg-equipment-character-top">
+                <div className="fg-equipment-character-meta">
+                  <div className="fg-label">Fighter</div>
+                  <select
+                    className="fg-input fg-equipment-character-select"
+                    value={selectedCharId}
+                    onChange={(e) => setSelectedCharId(e.target.value)}
+                  >
+                    <option value="">Select fighter</option>
+                    {knownCharacters.map((character) => (
+                      <option key={character.id} value={character.id}>
+                        {character.name} ({character.id})
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <div className="fg-equipment-actions">
-                  <button
-                    type="button"
-                    className="fg-chip-button"
-                    onClick={() => handleEquip(item.id)}
-                  >
-                    Equip
-                  </button>
-                  <button
-                    type="button"
-                    className="fg-chip-button"
-                    onClick={() => handleUnequip(item.id)}
-                  >
-                    Unequip
-                  </button>
-                  <button
-                    type="button"
-                    className="fg-chip-button"
-                    onClick={() => handleRepair(item.id)}
-                  >
-                    Repair
-                  </button>
-                  <button
-                    type="button"
-                    className="fg-chip-button"
-                    onClick={() => handleTransfer(item.id)}
-                  >
-                    Transfer
-                  </button>
+                {selectedCharacter && (
+                  <div className="fg-equipment-character-title">
+                    <div className="fg-equipment-character-name">
+                      {selectedCharacter.name} Level {selectedCharacter.level}
+                    </div>
+                    <div className="fg-equipment-character-class">
+                      {getClassName(selectedCharacter.characterClass)}
+                    </div>
+                  </div>
+                )}
+                {!selectedCharacter && (
+                  <div className="fg-equipment-character-title">
+                    <div className="fg-equipment-character-name">
+                      No fighter selected
+                    </div>
+                    <div className="fg-equipment-character-class">
+                      Load or create a character in the Characters tab.
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="fg-equipment-character-body">
+                <div className="fg-equipment-character-portrait">
+                  <div
+                    className="fg-equipment-character-image"
+                    style={{
+                      backgroundImage:
+                        'url("https://lh3.googleusercontent.com/aida-public/AB6AXuC1q_l5dSb-bvUTTpT2J1WKm5itFf8ugdBAZNuyBY-ySfS3WS-S0u-bABgX4pPOcLqP9wmq8Aqyn66VdsYbF-WeJ6ZXd2tIeG-karTl5cCVvKMDNXU7mP1l6sPOTV01w_C7bmRxFBuG2sNTtk5xWcn-YQJWvAmA3eEQrG5751G38n8xK5xHNVky-3I972pozeci3JTEEJoGWMSwyXgPBdR2Ly2AkLqre4aL-yafvozOpwIXAENEuil7Xj2tZ6xYybPKeB5OSCbwMBAu")',
+                    }}
+                  />
                 </div>
               </div>
-            ))}
+            </div>
+
+            <div className="fg-card fg-equipment-character-stats">
+              <h3 className="fg-section-title">Character Stats</h3>
+              {selectedCharacter ? (
+                <>
+                  <div className="fg-equipment-stat-row">
+                    <span className="fg-label">Attack</span>
+                    <span className="fg-value">
+                      {selectedCharacter.damageMin}-{selectedCharacter.damageMax}
+                    </span>
+                  </div>
+                  <div className="fg-equipment-stat-row">
+                    <span className="fg-label">Defense</span>
+                    <span className="fg-value">{selectedCharacter.defense}</span>
+                  </div>
+                  <div className="fg-equipment-stat-row">
+                    <span className="fg-label">HP</span>
+                    <span className="fg-value">
+                      {selectedCharacter.hp}/{selectedCharacter.maxHp}
+                    </span>
+                  </div>
+                  <div className="fg-equipment-stat-row">
+                    <span className="fg-label">Speed</span>
+                    <span className="fg-value">{selectedCharacter.dodgeChance}</span>
+                  </div>
+                </>
+              ) : (
+                <p className="fg-muted">
+                  Select a fighter to view stats and equipped gear.
+                </p>
+              )}
+            </div>
+
+            <div className="fg-card fg-equipment-slots">
+              <h3 className="fg-section-title">Equipment Slots</h3>
+              <div className="fg-equipment-slots-grid">
+                <div className="fg-equipment-slot">
+                  <div className="fg-equipment-slot-icon fg-equipment-slot-image fg-equipment-slot-weapon" />
+                  <div className="fg-equipment-slot-text">
+                    <div className="fg-label">Weapon</div>
+                    <div className="fg-value">
+                      {selectedCharacter?.weaponId || <span className="fg-muted">None equipped</span>}
+                    </div>
+                  </div>
+                </div>
+                <div className="fg-equipment-slot">
+                  <div className="fg-equipment-slot-icon fg-equipment-slot-image fg-equipment-slot-armor" />
+                  <div className="fg-equipment-slot-text">
+                    <div className="fg-label">Armor</div>
+                    <div className="fg-value">
+                      {selectedCharacter?.armorId || <span className="fg-muted">None equipped</span>}
+                    </div>
+                  </div>
+                </div>
+                <div className="fg-equipment-slot">
+                  <div className="fg-equipment-slot-icon fg-equipment-slot-empty">+</div>
+                  <div className="fg-equipment-slot-text">
+                    <div className="fg-label">Accessory</div>
+                    <div className="fg-value">
+                      {selectedCharacter?.accessoryId || <span className="fg-muted">Empty</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
-        <p className="fg-caption">
-          Rarity colors and full stat bonuses can be fetched via the contract and displayed here.
-          The helper functions getEquipmentTypeName, getRarityName, and getRarityColor are already
-          wired for that purpose.
-        </p>
+
+          {/* Right: Inventory */}
+          <div className="fg-equipment-right">
+            <div className="fg-card fg-equipment-inventory-card">
+              <div className="fg-equipment-inventory-header">
+                <div>
+                  <h3 className="fg-section-title">
+                    Inventory ({loadedEquipment.length}/100)
+                  </h3>
+                  <p className="fg-muted">
+                    Load on-chain equipment and manage it from your vault.
+                  </p>
+                </div>
+                <form
+                  className="fg-form fg-form-inline fg-equipment-load-form"
+                  onSubmit={handleLoadEquipment}
+                >
+                  <div className="fg-form-group">
+                    <label className="fg-label" htmlFor="equip-id">
+                      Load by ID
+                    </label>
+                    <input
+                      id="equip-id"
+                      className="fg-input"
+                      value={equipmentId}
+                      onChange={(e) => setEquipmentId(e.target.value)}
+                      placeholder="e.g. weapon-001"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="fg-button"
+                    disabled={loading}
+                  >
+                    Load
+                  </button>
+                </form>
+              </div>
+
+              {error && (
+                <div className="fg-banner fg-banner-error fg-banner-small">
+                  {error}
+                </div>
+              )}
+
+              {loadedEquipment.length === 0 ? (
+                <p className="fg-muted fg-equipment-empty">
+                  No equipment loaded yet. Enter an equipment ID and click Load to see it here.
+                </p>
+              ) : (
+                <div className="fg-inventory-grid">
+                  {loadedEquipment.map((equipment) => {
+                    const rarityColor = getRarityColor(equipment.rarity);
+                    const rarityName = getRarityName(equipment.rarity);
+                    const typeName = getEquipmentTypeName(equipment.equipmentType);
+                    const isSelected = equipment.id === selectedEquipmentId;
+
+                    return (
+                      <button
+                        key={equipment.id}
+                        type="button"
+                        className={
+                          isSelected
+                            ? 'fg-inventory-card fg-inventory-card-selected'
+                            : 'fg-inventory-card'
+                        }
+                        onClick={() => handleSelectEquipment(equipment.id)}
+                      >
+                        <div className="fg-inventory-card-overlay" />
+                        <div className="fg-inventory-card-content">
+                          <div className="fg-inventory-card-title">
+                            {typeName} #{equipment.id.slice(0, 6)}
+                          </div>
+                          <div
+                            className="fg-inventory-card-rarity"
+                            style={{ color: rarityColor }}
+                          >
+                            {rarityName}
+                          </div>
+                        </div>
+                        <div
+                          className="fg-inventory-rarity-dot"
+                          style={{ backgroundColor: rarityColor }}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {selectedEquipment && (
+              <div className="fg-card fg-equipment-detail">
+                <div className="fg-equipment-detail-left">
+                  <div className="fg-equipment-detail-image-wrapper">
+                    <div
+                      className="fg-equipment-detail-image"
+                      style={{
+                        backgroundImage:
+                          'url("https://lh3.googleusercontent.com/aida-public/AB6AXuA2ndxA0exgjHWkcW-4Pl6A4JIvYvhQKxdyGPdTP5ouk3aSX1p8KlN0KZUcfBuaeuD4GUHE9n9IqS6ODpgoaUkndfJJcVemT6d009C91DjLtX_ObthFZIINevLvmc3HRkHbeMDovW6EAcedTkVHHvaDOWE9Ci9sa3TTlq0l6zc42-VPsL19u_MMSGSutVre-P-VItvaA8dqG-gqYwzbcFgIgN4Pevvz3hiF-PNQPqx_jVNXOYFW23UbOZiSGmFnSwrIARLAuW2_zJp")',
+                      }}
+                    />
+                  </div>
+                  <div className="fg-equipment-detail-buttons">
+                    <button
+                      type="button"
+                      className="fg-button"
+                      disabled={loading}
+                      onClick={() => handleEquip(selectedEquipment.id)}
+                    >
+                      Equip
+                    </button>
+                    <button
+                      type="button"
+                      className="fg-button fg-button-outline"
+                      disabled={loading}
+                      onClick={() => handleRepair(selectedEquipment.id)}
+                    >
+                      Repair
+                    </button>
+                  </div>
+                </div>
+                <div className="fg-equipment-detail-right">
+                  <div className="fg-equipment-detail-header">
+                    <div>
+                      <div className="fg-equipment-detail-name">
+                        {getEquipmentTag(selectedEquipment)}
+                      </div>
+                      <div className="fg-equipment-detail-sub">
+                        ID: {selectedEquipment.id}
+                      </div>
+                    </div>
+                    {selectedEquipment.equippedTo && (
+                      <div className="fg-equipment-equipped-to">
+                        Equipped to {selectedEquipment.equippedTo}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="fg-equipment-detail-stats">
+                    <div className="fg-equipment-stat-row">
+                      <span className="fg-label">HP Bonus</span>
+                      <span className="fg-value">+{selectedEquipment.hpBonus}</span>
+                    </div>
+                    <div className="fg-equipment-stat-row">
+                      <span className="fg-label">Damage Bonus</span>
+                      <span className="fg-value">
+                        +{selectedEquipment.damageMinBonus}–{selectedEquipment.damageMaxBonus}
+                      </span>
+                    </div>
+                    <div className="fg-equipment-stat-row">
+                      <span className="fg-label">Crit Chance</span>
+                      <span className="fg-value">+{selectedEquipment.critBonus}%</span>
+                    </div>
+                    <div className="fg-equipment-stat-row">
+                      <span className="fg-label">Dodge</span>
+                      <span className="fg-value">+{selectedEquipment.dodgeBonus}%</span>
+                    </div>
+                    <div className="fg-equipment-stat-row">
+                      <span className="fg-label">Durability</span>
+                      <span className="fg-value">
+                        {formatDurability(selectedEquipment)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="fg-equipment-detail-actions">
+                    <button
+                      type="button"
+                      className="fg-chip-button"
+                      disabled={loading}
+                      onClick={() => handleUnequip(selectedEquipment.id)}
+                    >
+                      Unequip
+                    </button>
+                    <button
+                      type="button"
+                      className="fg-chip-button"
+                      disabled={loading}
+                      onClick={() => handleTransfer(selectedEquipment.id)}
+                    >
+                      Transfer
+                    </button>
+                  </div>
+
+                  <p className="fg-caption">
+                    Equipment stats and rarity are read directly from the Massa smart contract.
+                    Use this panel to inspect impact on your fighter before entering the arena.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </section>
     </div>
   );

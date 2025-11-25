@@ -648,45 +648,402 @@
 
 /* Equipment */
 
-.fg-equipment-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 0.6rem;
-  margin-top: 0.5rem;
-}
-
-.fg-equipment-card {
-  border-radius: 12px;
-  border: 1px solid rgba(31, 41, 55, 0.95);
-  background: var(--fg-panel-secondary);
-  padding: 0.6rem 0.7rem;
+.fg-equipment {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.9rem;
 }
 
-.fg-equipment-header {
+.fg-equipment-hero {
+  margin-top: 0.2rem;
+}
+
+.fg-equipment-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.6fr);
+  gap: 1rem;
+  margin-top: 0.9rem;
+  align-items: flex-start;
+}
+
+.fg-equipment-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.fg-equipment-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Character panel */
+
+.fg-equipment-character-card {
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background:
+    radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.24), transparent 55%),
+    radial-gradient(circle at 100% 0, rgba(16, 185, 129, 0.2), transparent 55%),
+    rgba(15, 23, 42, 0.96);
+  padding: 0.8rem 0.8rem 0.9rem 0.8rem;
+  box-shadow: var(--fg-shadow-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.fg-equipment-character-top {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.fg-equipment-character-meta {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
 }
 
-.fg-equipment-id {
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    'Liberation Mono', 'Courier New', monospace;
-  font-size: 0.8rem;
+.fg-equipment-character-select {
+  font-size: 0.82rem;
 }
 
-.fg-equipment-summary {
-  font-size: 0.84rem;
+.fg-equipment-character-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.fg-equipment-character-name {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.fg-equipment-character-class {
+  font-size: 0.86rem;
   color: var(--fg-text-muted);
 }
 
-.fg-equipment-actions {
+.fg-equipment-character-body {
+  display: flex;
+  justify-content: center;
+}
+
+.fg-equipment-character-portrait {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 0, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.95));
+}
+
+.fg-equipment-character-image {
+  width: 100%;
+  padding-bottom: 100%;
+  background-position: center;
+  background-size: cover;
+  filter: saturate(1.2);
+  transition: transform 0.2s ease;
+}
+
+.fg-equipment-character-card:hover .fg-equipment-character-image {
+  transform: scale(1.03);
+}
+
+/* Character stats */
+
+.fg-equipment-character-stats {
+  padding: 0.8rem 0.8rem 0.9rem 0.8rem;
+}
+
+.fg-equipment-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.2rem 0;
+  border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+}
+
+.fg-equipment-stat-row:last-child {
+  border-bottom: none;
+}
+
+/* Equipment slots */
+
+.fg-equipment-slots {
+  padding: 0.8rem 0.8rem 0.9rem 0.8rem;
+}
+
+.fg-equipment-slots-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.fg-equipment-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fg-equipment-slot-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 2px dashed rgba(148, 163, 184, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: rgba(148, 163, 184, 0.9);
+  background: rgba(15, 23, 42, 0.85);
+  overflow: hidden;
+}
+
+.fg-equipment-slot-image {
+  border-style: solid;
+  background-position: center;
+  background-size: cover;
+}
+
+.fg-equipment-slot-weapon {
+  background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDLAZEJrbMdec4MXI5wfpROZFoLGemqKdZAXYfhX1dK-uQq7vVw5e0zBxwycQ2AEspEoegt6sedJWpUFCJgallxqABWkhltaLRVGBLw9_mzMwsjq-6OfOYyoTIDAUVMuHreO_h6X0N2VNzEuBE6maJK9EVuK4Kx6KDqucPuMkzJC_iddfGKO6NFgTBIku9czSwhkJqmx8KdnvIcyLG-1Bn7BIdCRFswmYJkty2dO5jXYWGHG3ioieXSB0lHXrWSW8MWQTZr_x8LyDW_');
+}
+
+.fg-equipment-slot-armor {
+  background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCqiZ3hwVzcyNN3XUhjbfwyIPgsOcjE3eonILaiBAGnwJdLe7z2hcCgqUzdC14WZdRHw5saNqSd8Vx45cZwYBf7E-WCvI5bmNPvoD8jftWSqSE92v49M3zA0ieNucvmJD1JD67edqo7rIjJi2X5rTkw_tSt2KnhRpMVn74WTm2G6lc-2kLOSPvj2VOK8o-2uxWZzd5BETSVGYWN7I29TqchjqWED4Po9AQWjYMa5Vq1f653t4UFdpSMyqKhFqiGDlR0iE-74Rfxa6F7');
+}
+
+.fg-equipment-slot-empty {
+  font-size: 1.3rem;
+  border-style: dashed;
+}
+
+.fg-equipment-slot-text {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Inventory */
+
+.fg-equipment-inventory-card {
+  padding: 0.8rem 0.8rem 0.9rem 0.8rem;
+}
+
+.fg-equipment-inventory-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.fg-equipment-load-form {
+  margin-top: 0.35rem;
+}
+
+.fg-equipment-empty {
+  margin-top: 0.4rem;
+}
+
+.fg-inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.5rem;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+}
+
+.fg-inventory-card {
+  position: relative;
+  border-radius: 12px;
+  border: 1px solid rgba(31, 41, 55, 0.9);
+  background: radial-gradient(circle at 0 0, rgba(37, 99, 235, 0.35), rgba(15, 23, 42, 0.96));
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: flex-end;
+  min-height: 120px;
+  transition:
+    border-color 0.12s ease,
+    box-shadow 0.12s ease,
+    transform 0.08s ease;
+}
+
+.fg-inventory-card:hover {
+  border-color: rgba(56, 189, 248, 0.9);
+  box-shadow: var(--fg-shadow-subtle);
+  transform: translateY(-1px);
+}
+
+.fg-inventory-card-selected {
+  border-width: 2px;
+  border-color: rgba(56, 189, 248, 1);
+  box-shadow: 0 14px 32px rgba(56, 189, 248, 0.45);
+}
+
+.fg-inventory-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.94), transparent 55%);
+}
+
+.fg-inventory-card-content {
+  position: relative;
+  z-index: 1;
+  padding: 0.5rem 0.55rem;
+  width: 100%;
+}
+
+.fg-inventory-card-title {
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.fg-inventory-card-rarity {
+  margin-top: 0.05rem;
+  font-size: 0.78rem;
+}
+
+.fg-inventory-rarity-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+}
+
+/* Equipment detail */
+
+.fg-equipment-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.4fr);
+  gap: 0.9rem;
+  padding: 0.8rem 0.9rem 0.9rem 0.9rem;
+}
+
+.fg-equipment-detail-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.fg-equipment-detail-image-wrapper {
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.96);
+}
+
+.fg-equipment-detail-image {
+  width: 100%;
+  padding-bottom: 100%;
+  background-position: center;
+  background-size: cover;
+  filter: saturate(1.2);
+}
+
+.fg-equipment-detail-buttons {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.fg-equipment-detail-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.fg-equipment-detail-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: flex-start;
+}
+
+.fg-equipment-detail-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.fg-equipment-detail-sub {
+  font-size: 0.8rem;
+  color: var(--fg-text-muted);
+}
+
+.fg-equipment-equipped-to {
+  font-size: 0.8rem;
+  padding: 0.16rem 0.46rem;
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.9);
+  background: rgba(15, 23, 42, 0.96);
+}
+
+.fg-equipment-detail-stats {
+  margin-top: 0.2rem;
+}
+
+.fg-equipment-detail-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
   margin-top: 0.2rem;
+}
+
+/* Skills */
+
+.fg-skill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+.fg-skill-card {
+  border-radius: 12px;
+  border: 1px solid rgba(30, 64, 175, 0.8);
+  background: radial-gradient(circle at 0 0, rgba(37, 99, 235, 0.3), rgba(15, 23, 42, 0.96));
+  padding: 0.6rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.fg-skill-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fg-skill-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.fg-skill-meta {
+  font-size: 0.78rem;
+  color: var(--fg-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.fg-skill-description {
+  font-size: 0.82rem;
+  color: rgba(203, 213, 225, 0.95);
+}
+
+.fg-skill-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
 }
 
 /* Skills */
