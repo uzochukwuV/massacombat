@@ -9,38 +9,47 @@ import { callContract, readContract } from './useContract';
 
 export interface BattlePlayer {
   characterId: string;
-  hp: number;
-  maxHp: number;
-  energy: number;
-  damageMin: number;
-  damageMax: number;
-  dodge: number;
-  crit: number;
-  combo: number;
-  skillSlot1: number;
-  skillSlot2: number;
-  skillSlot3: number;
-  skillCooldowns: number[];
-  statusEffects: number;
-  poisonTurns: number;
-  stunTurns: number;
-  shieldTurns: number;
-  rageTurns: number;
-  burnTurns: number;
+  currentHp: bigint;
+  maxHp: bigint;
+  energy: bigint;
+  statusEffects: bigint;
+  poisonTurns: bigint;
+  stunTurns: bigint;
+  shieldTurns: bigint;
+  rageTurns: bigint;
+  burnTurns: bigint;
+  comboCount: bigint;
+  guaranteedCrit: boolean;
+  dodgeBoost: bigint;
+  dodgeBoostTurns: bigint;
+  cooldown1: bigint;
+  cooldown2: bigint;
+  cooldown3: bigint;
+  cooldown4: bigint;
+  cooldown5: bigint;
+  cooldown6: bigint;
+  cooldown7: bigint;
+  cooldown8: bigint;
+  cooldown9: bigint;
+  cooldown10: bigint;
 }
 
 export interface Battle {
   id: string;
   player1: BattlePlayer;
   player2: BattlePlayer;
-  currentTurn: number;
-  state: number;
-  winner: string;
-  wildcard: number;
+  currentTurn: bigint;
+  turnNumber: bigint;
+  state: bigint;
+  winnerId: string;
+  startTimestamp: bigint;
+  lastActionTimestamp: bigint;
+  wildcardActive: boolean;
+  wildcardType: bigint;
   wildcardDeadline: bigint;
-  player1WildcardDecision: number;
-  player2WildcardDecision: number;
-  battleLog: string;
+  player1WildcardDecision: bigint;
+  player2WildcardDecision: bigint;
+  randomSeed: bigint;
 }
 
 export interface BattleResult {
@@ -117,15 +126,81 @@ export function useBattle(
           args
         );
 
-        const resultArgs = new Args(result.value);
-        const battleData = resultArgs.nextString();
-
-        if (!battleData || battleData === 'Battle not found') {
+        if (!result || !result.value || result.value.length === 0) {
           return null;
         }
 
-        // Parse battle data (JSON format from contract)
-        const battle = JSON.parse(battleData) as Battle;
+        const battleArgs = new Args(result.value);
+
+        // Parse battle data (binary format from contract)
+        const battle: Battle = {
+          id: battleArgs.nextString(),
+          player1: {
+            characterId: battleArgs.nextString(),
+            currentHp: battleArgs.nextU16(),
+            maxHp: battleArgs.nextU16(),
+            energy: battleArgs.nextU8(),
+            statusEffects: battleArgs.nextU8(),
+            poisonTurns: battleArgs.nextU8(),
+            stunTurns: battleArgs.nextU8(),
+            shieldTurns: battleArgs.nextU8(),
+            rageTurns: battleArgs.nextU8(),
+            burnTurns: battleArgs.nextU8(),
+            comboCount: battleArgs.nextU8(),
+            guaranteedCrit: battleArgs.nextBool(),
+            dodgeBoost: battleArgs.nextU8(),
+            dodgeBoostTurns: battleArgs.nextU8(),
+            cooldown1: battleArgs.nextU8(),
+            cooldown2: battleArgs.nextU8(),
+            cooldown3: battleArgs.nextU8(),
+            cooldown4: battleArgs.nextU8(),
+            cooldown5: battleArgs.nextU8(),
+            cooldown6: battleArgs.nextU8(),
+            cooldown7: battleArgs.nextU8(),
+            cooldown8: battleArgs.nextU8(),
+            cooldown9: battleArgs.nextU8(),
+            cooldown10: battleArgs.nextU8(),
+          },
+          player2: {
+            characterId: battleArgs.nextString(),
+            currentHp: battleArgs.nextU16(),
+            maxHp: battleArgs.nextU16(),
+            energy: battleArgs.nextU8(),
+            statusEffects: battleArgs.nextU8(),
+            poisonTurns: battleArgs.nextU8(),
+            stunTurns: battleArgs.nextU8(),
+            shieldTurns: battleArgs.nextU8(),
+            rageTurns: battleArgs.nextU8(),
+            burnTurns: battleArgs.nextU8(),
+            comboCount: battleArgs.nextU8(),
+            guaranteedCrit: battleArgs.nextBool(),
+            dodgeBoost: battleArgs.nextU8(),
+            dodgeBoostTurns: battleArgs.nextU8(),
+            cooldown1: battleArgs.nextU8(),
+            cooldown2: battleArgs.nextU8(),
+            cooldown3: battleArgs.nextU8(),
+            cooldown4: battleArgs.nextU8(),
+            cooldown5: battleArgs.nextU8(),
+            cooldown6: battleArgs.nextU8(),
+            cooldown7: battleArgs.nextU8(),
+            cooldown8: battleArgs.nextU8(),
+            cooldown9: battleArgs.nextU8(),
+            cooldown10: battleArgs.nextU8(),
+          },
+          currentTurn: battleArgs.nextU8(),
+          turnNumber: battleArgs.nextU32(),
+          state: battleArgs.nextU8(),
+          winnerId: battleArgs.nextString(),
+          startTimestamp: battleArgs.nextU64(),
+          lastActionTimestamp: battleArgs.nextU64(),
+          wildcardActive: battleArgs.nextBool(),
+          wildcardType: battleArgs.nextU8(),
+          wildcardDeadline: battleArgs.nextU64(),
+          player1WildcardDecision: battleArgs.nextU8(),
+          player2WildcardDecision: battleArgs.nextU8(),
+          randomSeed: battleArgs.nextU64(),
+        };
+
         return battle;
       } catch (err) {
         console.error('Failed to read battle:', err);
@@ -315,7 +390,7 @@ export function useBattle(
    * Check if player has status effect
    */
   const hasStatus = useCallback((player: BattlePlayer, statusBit: number): boolean => {
-    return (player.statusEffects & (1 << statusBit)) !== 0;
+    return (player.statusEffects & BigInt(1 << statusBit)) !== BigInt(0);
   }, []);
 
   /**

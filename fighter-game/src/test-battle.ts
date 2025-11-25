@@ -706,7 +706,7 @@ async function main(): Promise<void> {
       new Args().addString(char1Id)
     );
     const rank = new Args(rankResult.value).nextU32();
-    log(`Warrior Rank: ${rank === 0 ? 'Unranked' : `#${rank}`}`);
+    log(`Warrior Rank: ${rank === 0n ? 'Unranked' : `#${rank}`}`);
 
     // Get MMR tier
     const tierResult = await contract.read(
@@ -759,16 +759,16 @@ async function main(): Promise<void> {
     ];
 
     log('\nUnlocked Achievements:');
-    let unlockedCount = 0;
-    for (let i = 0; i < 10; i++) {
-      const isUnlocked = (achievements.unlockedBitmask & (1 << i)) !== 0;
+    let unlockedCount = 0n;
+    for (let i = 0n; i < 10n; i++) {
+      const isUnlocked = (achievements.unlockedBitmask & (1n << i)) !== 0n;
       if (isUnlocked) {
         log(`  ✅ ${achievementNames[i]}`);
         unlockedCount++;
       }
     }
 
-    if (unlockedCount === 0) {
+    if (unlockedCount === 0n) {
       log('  (No achievements unlocked yet)');
     }
 
@@ -782,7 +782,7 @@ async function main(): Promise<void> {
 
     const leaderboardResult = await contract.read(
       'game_getLeaderboard',
-      new Args().addU32(10) // Top 10
+      new Args().addU32(10n) // Top 10
     );
     const lbArgs = new Args(leaderboardResult.value);
     const lbCount = lbArgs.nextU32();

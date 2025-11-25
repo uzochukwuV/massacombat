@@ -1,12 +1,9 @@
-
-import { Args, PublicAPI } from "@massalabs/massa-web3";
-
-import "./styles/Home.css";
+import UserDashboardWrapper from "./pages/UserDashboardWrapper"
 
 
-export default function App() {
- 
-  return (
-    <>hello</>
-  );
+
+export default function Home() {
+  return <>
+  <UserDashboardWrapper />
+  </>
 }

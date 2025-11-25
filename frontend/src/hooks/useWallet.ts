@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
 import { getWallets, WalletName } from "@massalabs/wallet-provider";
-import { web3 } from '@hicaru/bearby.js';
 
 interface WalletProvider {
   address: string;
@@ -20,13 +19,9 @@ interface UseWalletReturn {
 export function useWallet(): UseWalletReturn {
   const [isConnected, setIsConnected] = useState(false);
   const [userAddress, setUserAddress] = useState('');
-  const [provider, setProvider] = useState(null);
+  const [provider, setProvider] = useState<WalletProvider | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(()=>{
-    connect()
-  },[])
 
   const connect = useCallback(async () => {
     setLoading(true);
@@ -43,19 +38,16 @@ export function useWallet(): UseWalletReturn {
       }
 
       const accounts = await wallet.accounts();
-      console.log(accounts)
       if (accounts.length === 0) {
         throw new Error("No accounts found. Please create an account in your Massa wallet");
       }
 
       const walletProvider = accounts[0];
-
-      walletProvider.callSC({
-        
-      })
-      console.log(walletProvider)
       setUserAddress(walletProvider.address);
-      setProvider(walletProvider);
+      setProvider({
+        address: walletProvider.address,
+        name: 'Massa Wallet',
+      });
       setIsConnected(true);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to connect wallet';
@@ -73,17 +65,18 @@ export function useWallet(): UseWalletReturn {
     setError(null);
   }, []);
 
-  // Check for existing wallet connection on mount
+  // Initialize wallet connection on mount
   useEffect(() => {
-    if (web3.wallet.connected && web3.wallet.account?.base58) {
-      setUserAddress(web3.wallet.account.base58);
-      setProvider({
-        address: web3.wallet.account.base58,
-        name: 'Massa Wallet'
-      });
-      setIsConnected(true);
-    }
-  }, []);
+    const initWallet = async () => {
+      try {
+        await connect();
+      } catch (err) {
+        console.error('Initial wallet connection failed:', err);
+      }
+    };
+
+    initWallet();
+  }, [connect]);
 
   return {
     isConnected,

@@ -29,3 +29,5 @@ export * from './useAchievements';
 
 // Treasury and admin
 export * from './useTreasury';
+
+export *  from "./useWallet"
