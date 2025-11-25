@@ -1,5 +1,5 @@
 /**
- * Equipment Management Hook (FIXED - Dynamic Repair Fee)
+ * Equipment Management Hook
  * Handles equipment creation, reading, equipping, and transfers
  */
 
@@ -23,23 +23,6 @@ export interface Equipment {
   createdAt: bigint;
 }
 
-/**
- * Calculate repair fee based on equipment rarity (FIXED - Dynamic pricing)
- * @param rarity - Equipment rarity (0-3)
- * @returns Repair fee in MAS
- */
-export function calculateRepairFee(rarity: number): string {
-  // Base fee: 0.1 MAS
-  // Formula: 0.1 * 2^rarity
-  // Common (0): 0.1 MAS
-  // Rare (1): 0.2 MAS
-  // Epic (2): 0.4 MAS
-  // Legendary (3): 0.8 MAS
-  const baseFee = 0.1;
-  const fee = baseFee * Math.pow(2, rarity);
-  return fee.toFixed(1);
-}
-
 export function useEquipment(
   contractAddress: string,
   isConnected: boolean,
@@ -51,6 +34,7 @@ export function useEquipment(
 
   /**
    * Read equipment data
+   * @param id - Equipment ID
    */
   const readEquipment = useCallback(
     async (id: string): Promise<Equipment | null> => {
@@ -90,6 +74,8 @@ export function useEquipment(
 
   /**
    * Equip item to character
+   * @param charId - Character ID
+   * @param equipmentId - Equipment ID to equip
    */
   const equipItem = useCallback(
     async (charId: string, equipmentId: string) => {
@@ -127,6 +113,8 @@ export function useEquipment(
 
   /**
    * Unequip item from character
+   * @param charId - Character ID
+   * @param equipmentId - Equipment ID to unequip
    */
   const unequipItem = useCallback(
     async (charId: string, equipmentId: string) => {
@@ -164,6 +152,8 @@ export function useEquipment(
 
   /**
    * Transfer equipment to another address
+   * @param equipmentId - Equipment ID
+   * @param toAddr - Destination address
    */
   const transferEquipment = useCallback(
     async (equipmentId: string, toAddr: string) => {
@@ -200,7 +190,27 @@ export function useEquipment(
   );
 
   /**
-   * Repair equipment (FIXED - Dynamic fee based on rarity)
+   * Calculate repair fee based on equipment rarity
+   * Common: 0.1 MAS, Rare: 0.15 MAS, Epic: 0.2 MAS, Legendary: 0.3 MAS
+   */
+  const calculateRepairFee = useCallback((rarity: number): string => {
+    switch (rarity) {
+      case 0: // Common
+        return '0.1';
+      case 1: // Rare
+        return '0.15';
+      case 2: // Epic
+        return '0.2';
+      case 3: // Legendary
+        return '0.3';
+      default:
+        return '0.1';
+    }
+  }, []);
+
+  /**
+   * Repair equipment
+   * @param equipmentId - Equipment ID
    */
   const repairEquipment = useCallback(
     async (equipmentId: string) => {
@@ -212,17 +222,14 @@ export function useEquipment(
           throw new Error('Wallet not connected');
         }
 
-        // First, fetch the equipment to determine its rarity
+        // Get equipment to determine rarity for fee calculation
         const equipment = await readEquipment(equipmentId);
-
         if (!equipment) {
           throw new Error('Equipment not found');
         }
 
-        // Calculate dynamic repair fee based on rarity
-        const repairFee = calculateRepairFee(equipment.rarity);
-
         const args = new Args().addString(equipmentId);
+        const repairFee = calculateRepairFee(equipment.rarity);
 
         const op = await callContract(
           provider,
@@ -233,7 +240,7 @@ export function useEquipment(
           BigInt(100_000_000)
         );
 
-        console.log(`Equipment repaired (${repairFee} MAS):`, op.id);
+        console.log('Equipment repaired:', op.id);
         return op;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to repair equipment';
@@ -243,7 +250,7 @@ export function useEquipment(
         setLoading(false);
       }
     },
-    [isConnected, contractAddress, provider, readEquipment]
+    [isConnected, contractAddress, provider, readEquipment, calculateRepairFee]
   );
 
   /**
@@ -284,6 +291,7 @@ export function useEquipment(
     unequipItem,
     transferEquipment,
     repairEquipment,
+    calculateRepairFee,
     getEquipmentTypeName,
     getRarityName,
     getRarityColor,

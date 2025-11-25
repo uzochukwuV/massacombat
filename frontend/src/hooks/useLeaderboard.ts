@@ -1,5 +1,5 @@
 /**
- * Leaderboard and Ranking Hook (FIXED - Binary Data Parsing)
+ * Leaderboard and Ranking Hook
  * Handles MMR, rankings, and leaderboard queries
  */
 
@@ -21,7 +21,8 @@ export function useLeaderboard(contractAddress: string, provider: any) {
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * Get top N leaderboard entries (FIXED - Binary parsing)
+   * Get top N leaderboard entries
+   * @param count - Number of entries to fetch (max 100)
    */
   const getLeaderboard = useCallback(
     async (count: number = 10): Promise<LeaderboardEntry[]> => {
@@ -30,36 +31,30 @@ export function useLeaderboard(contractAddress: string, provider: any) {
 
       try {
         const args = new Args().addU32(Math.min(count, 100));
-        const resultBytes = await readContract(
+        const result = await readContract(
           provider,
           contractAddress,
           'game_getLeaderboard',
           args
         );
 
-        // Parse binary data using Args
-        const resultArgs = new Args(resultBytes);
+        if (!result || !result.value || result.value.length === 0) {
+          return [];
+        }
 
-        // First, read the count of entries returned
-        const entryCount = resultArgs.nextU32().unwrap();
-
+        const resultArgs = new Args(result.value);
+        const entryCount = resultArgs.nextU32();
         const entries: LeaderboardEntry[] = [];
 
-        // Parse each LeaderboardEntry
-        for (let i = 0; i < entryCount; i++) {
-          const characterId = resultArgs.nextString().unwrap();
-          const ownerAddress = resultArgs.nextString().unwrap();
-          const mmr = resultArgs.nextU64().unwrap();
-          const wins = resultArgs.nextU32().unwrap();
-          const losses = resultArgs.nextU32().unwrap();
-
+        // Parse each leaderboard entry (binary format from contract)
+        for (let i = 0; i < Number(entryCount); i++) {
           entries.push({
-            rank: i + 1, // Rank is position in array (1-indexed)
-            characterId,
-            ownerAddress,
-            mmr: Number(mmr),
-            wins: Number(wins),
-            losses: Number(losses),
+            rank: i + 1,
+            characterId: resultArgs.nextString(),
+            ownerAddress: resultArgs.nextString(),
+            mmr: Number(resultArgs.nextU64()),
+            wins: Number(resultArgs.nextU32()),
+            losses: Number(resultArgs.nextU32()),
           });
         }
 
@@ -78,20 +73,21 @@ export function useLeaderboard(contractAddress: string, provider: any) {
 
   /**
    * Get character rank by character ID
+   * @param characterId - Character ID
    */
   const getCharacterRank = useCallback(
     async (characterId: string): Promise<number> => {
       try {
         const args = new Args().addString(characterId);
-        const resultBytes = await readContract(
+        const result = await readContract(
           provider,
           contractAddress,
           'game_getCharacterRank',
           args
         );
 
-        const resultArgs = new Args(resultBytes);
-        return Number(resultArgs.nextU32().unwrap());
+        const resultArgs = new Args(result.value);
+        return resultArgs.nextU32();
       } catch (err) {
         console.error('Failed to get character rank:', err);
         return 0;

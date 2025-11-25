@@ -1,5 +1,5 @@
 /**
- * Tournament Management Hook (FIXED - Binary Data Parsing)
+ * Tournament Management Hook
  * Handles tournament creation, registration, and match management
  */
 
@@ -10,15 +10,14 @@ import { callContract, readContract } from './useContract';
 export interface Tournament {
   id: string;
   name: string;
-  creator: string;
   entryFee: bigint;
   prizePool: bigint;
   maxParticipants: bigint;
-  participants: string;  // Comma-separated character IDs
-  state: bigint;
   currentRound: bigint;
-  bracket: string;  // Comma-separated bracket data
-  winner: string;
+  state: bigint;
+  participants: string;
+  bracket: string;
+  winnerId: string;
   runnerUpId: string;
   thirdPlaceId: string;
   createdAt: bigint;
@@ -37,6 +36,10 @@ export function useTournament(
 
   /**
    * Create a new tournament
+   * @param tournamentId - Unique tournament ID
+   * @param name - Tournament name
+   * @param entryFee - Entry fee in nanoMAS
+   * @param maxParticipants - Maximum participants (must be power of 2)
    */
   const createTournament = useCallback(
     async (
@@ -72,7 +75,7 @@ export function useTournament(
           contractAddress,
           'game_createTournament',
           args,
-          Mas.fromString('1.0'),
+          Mas.fromString('1.0'), // Tournament creation fee
           BigInt(100_000_000)
         );
 
@@ -92,6 +95,8 @@ export function useTournament(
 
   /**
    * Register for a tournament
+   * @param tournamentId - Tournament ID
+   * @param characterId - Character ID
    */
   const registerTournament = useCallback(
     async (tournamentId: string, characterId: string) => {
@@ -110,7 +115,7 @@ export function useTournament(
           contractAddress,
           'game_registerTournament',
           args,
-          Mas.fromString('0.5'),
+          Mas.fromString('0.5'), // Will include entry fee
           BigInt(100_000_000)
         );
 
@@ -130,6 +135,7 @@ export function useTournament(
 
   /**
    * Start a tournament (admin only)
+   * @param tournamentId - Tournament ID
    */
   const startTournament = useCallback(
     async (tournamentId: string) => {
@@ -168,6 +174,9 @@ export function useTournament(
 
   /**
    * Record a tournament match result
+   * @param tournamentId - Tournament ID
+   * @param matchIndex - Match index in current round
+   * @param winnerId - Winner character ID
    */
   const recordTournamentMatch = useCallback(
     async (tournamentId: string, matchIndex: number, winnerId: string) => {
@@ -211,6 +220,7 @@ export function useTournament(
 
   /**
    * Finalize a completed tournament
+   * @param tournamentId - Tournament ID
    */
   const finalizeTournament = useCallback(
     async (tournamentId: string) => {
@@ -248,57 +258,46 @@ export function useTournament(
   );
 
   /**
-   * Read tournament state (FIXED - Binary parsing)
+   * Read tournament state
+   * @param tournamentId - Tournament ID
    */
   const readTournament = useCallback(
     async (tournamentId: string): Promise<Tournament | null> => {
       try {
         const args = new Args().addString(tournamentId);
-        const resultBytes = await readContract(
+        const result = await readContract(
           provider,
           contractAddress,
           'game_readTournament',
           args
         );
 
-        // Parse binary data using Args
-        const resultArgs = new Args(resultBytes);
+        if (!result || !result.value || result.value.length === 0) {
+          return null;
+        }
 
-        const id = resultArgs.nextString().unwrap();
-        const name = resultArgs.nextString().unwrap();
-        const creator = resultArgs.nextString().unwrap();
-        const entryFee = resultArgs.nextU64().unwrap();
-        const prizePool = resultArgs.nextU64().unwrap();
-        const maxParticipants = resultArgs.nextU8().unwrap();
-        const participants = resultArgs.nextString().unwrap();  // Comma-separated
-        const state = resultArgs.nextU8().unwrap();
-        const currentRound = resultArgs.nextU8().unwrap();
-        const bracket = resultArgs.nextString().unwrap();  // Comma-separated
-        const winner = resultArgs.nextString().unwrap();
-        const runnerUpId = resultArgs.nextString().unwrap();
-        const thirdPlaceId = resultArgs.nextString().unwrap();
-        const createdAt = resultArgs.nextU64().unwrap();
-        const startedAt = resultArgs.nextU64().unwrap();
-        const endedAt = resultArgs.nextU64().unwrap();
+        const tournamentArgs = new Args(result.value);
 
-        return {
-          id,
-          name,
-          creator,
-          entryFee: BigInt(entryFee),
-          prizePool: BigInt(prizePool),
-          maxParticipants: BigInt(maxParticipants),
-          participants,
-          state: BigInt(state),
-          currentRound: BigInt(currentRound),
-          bracket,
-          winner,
-          runnerUpId,
-          thirdPlaceId,
-          createdAt: BigInt(createdAt),
-          startedAt: BigInt(startedAt),
-          endedAt: BigInt(endedAt),
+        // Parse tournament data (binary format from contract)
+        const tournament: Tournament = {
+          id: tournamentArgs.nextString(),
+          name: tournamentArgs.nextString(),
+          entryFee: tournamentArgs.nextU64(),
+          prizePool: tournamentArgs.nextU64(),
+          maxParticipants: tournamentArgs.nextU8(),
+          currentRound: tournamentArgs.nextU8(),
+          state: tournamentArgs.nextU8(),
+          participants: tournamentArgs.nextString(),
+          bracket: tournamentArgs.nextString(),
+          winnerId: tournamentArgs.nextString(),
+          runnerUpId: tournamentArgs.nextString(),
+          thirdPlaceId: tournamentArgs.nextString(),
+          createdAt: tournamentArgs.nextU64(),
+          startedAt: tournamentArgs.nextU64(),
+          endedAt: tournamentArgs.nextU64(),
         };
+
+        return tournament;
       } catch (err) {
         console.error('Failed to read tournament:', err);
         return null;
@@ -310,9 +309,9 @@ export function useTournament(
   /**
    * Get tournament state name
    */
-  const getStateName = useCallback((state: bigint): string => {
-    const states = ['Registration', 'Active', 'Completed', 'Cancelled'];
-    return states[Number(state)] || 'Unknown';
+  const getStateName = useCallback((state: number): string => {
+    const states = ['Registration', 'Active', 'Finished', 'Cancelled'];
+    return states[state] || 'Unknown';
   }, []);
 
   /**
@@ -334,40 +333,18 @@ export function useTournament(
    * Check if tournament is full
    */
   const isTournamentFull = useCallback((tournament: Tournament): boolean => {
-    const participantCount = tournament.participants
-      ? tournament.participants.split(',').filter(p => p.length > 0).length
-      : 0;
-    return participantCount >= Number(tournament.maxParticipants);
+    return tournament.participants.length >= tournament.maxParticipants;
   }, []);
 
   /**
    * Get current round name
    */
-  const getRoundName = useCallback((round: bigint, maxParticipants: bigint): string => {
-    const totalRounds = Math.log2(Number(maxParticipants));
-    const roundNum = Number(round);
-    if (roundNum === totalRounds) return 'Finals';
-    if (roundNum === totalRounds - 1) return 'Semi-Finals';
-    if (roundNum === totalRounds - 2) return 'Quarter-Finals';
-    return `Round ${roundNum + 1}`;
-  }, []);
-
-  /**
-   * Get participants array
-   */
-  const getParticipantsArray = useCallback((tournament: Tournament): string[] => {
-    return tournament.participants
-      ? tournament.participants.split(',').filter(p => p.length > 0)
-      : [];
-  }, []);
-
-  /**
-   * Get bracket array
-   */
-  const getBracketArray = useCallback((tournament: Tournament): string[] => {
-    return tournament.bracket
-      ? tournament.bracket.split(',').filter(b => b.length > 0)
-      : [];
+  const getRoundName = useCallback((round: number, maxParticipants: number): string => {
+    const totalRounds = Math.log2(maxParticipants);
+    if (round === totalRounds) return 'Finals';
+    if (round === totalRounds - 1) return 'Semi-Finals';
+    if (round === totalRounds - 2) return 'Quarter-Finals';
+    return `Round ${round + 1}`;
   }, []);
 
   return {
@@ -381,8 +358,6 @@ export function useTournament(
     calculatePrizes,
     isTournamentFull,
     getRoundName,
-    getParticipantsArray,
-    getBracketArray,
     loading,
     error,
     isConnected,

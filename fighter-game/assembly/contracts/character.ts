@@ -424,9 +424,9 @@ export function getEffectiveStats(character: Character): Character {
   if (character.weaponId.length > 0) {
     const weapon = loadEquipment(character.weaponId);
     if (weapon != null) {
-      effectiveDmgMin += weapon!.damageMinBonus;
-      effectiveDmgMax += weapon!.damageMaxBonus;
-      effectiveCrit += weapon!.critBonus;
+      effectiveDmgMin += weapon.damageMinBonus;
+      effectiveDmgMax += weapon.damageMaxBonus;
+      effectiveCrit += weapon.critBonus;
     }
   }
 
@@ -434,8 +434,8 @@ export function getEffectiveStats(character: Character): Character {
   if (character.armorId.length > 0) {
     const armor = loadEquipment(character.armorId);
     if (armor != null) {
-      effectiveHp += armor!.hpBonus;
-      effectiveDodge += armor!.dodgeBonus;
+      effectiveHp += armor.hpBonus;
+      effectiveDodge += armor.dodgeBonus;
     }
   }
 
@@ -443,8 +443,8 @@ export function getEffectiveStats(character: Character): Character {
   if (character.accessoryId.length > 0) {
     const accessory = loadEquipment(character.accessoryId);
     if (accessory != null) {
-      effectiveCrit += accessory!.critBonus;
-      effectiveDodge += accessory!.dodgeBonus;
+      effectiveCrit += accessory.critBonus;
+      effectiveDodge += accessory.dodgeBonus;
     }
   }
 

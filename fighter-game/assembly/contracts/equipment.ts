@@ -372,8 +372,8 @@ function unequipSlot(character: Character, slotType: u8): void {
   if (currentEquipId.length > 0) {
     const equipment = loadEquipment(currentEquipId);
     if (equipment != null) {
-      equipment!.equippedTo = '';
-      saveEquipment(equipment!);
+      equipment.equippedTo = '';
+      saveEquipment(equipment);
     }
   }
 }

@@ -108,8 +108,8 @@ export function updateBattleMMR(
 
   if (winner == null || loser == null) return;
 
-  const winnerOldMMR = winner!.mmr;
-  const loserOldMMR = loser!.mmr;
+  const winnerOldMMR = winner.mmr;
+  const loserOldMMR = loser.mmr;
 
   // Calculate new MMRs
   const winnerNewMMR = calculateNewMMR(true, winnerOldMMR, loserOldMMR);
@@ -124,8 +124,8 @@ export function updateBattleMMR(
   updateCharacterMMR(loserId, loserNewMMR);
 
   // Update leaderboard
-  updateLeaderboardEntry(winner!);
-  updateLeaderboardEntry(loser!);
+  updateLeaderboardEntry(winner);
+  updateLeaderboardEntry(loser);
 
   generateEvent(
     `MMR_UPDATE:${winnerId}:${winnerOldMMR.toString()}:${winnerNewMMR.toString()}`
@@ -148,12 +148,12 @@ export function updateLeaderboardEntry(character: Character): void {
   if (freshChar == null) return;
 
   const entry = new LeaderboardEntry(
-    freshChar!.id,
-    freshChar!.owner,
-    freshChar!.mmr
+    freshChar.id,
+    freshChar.owner,
+    freshChar.mmr
   );
-  entry.wins = freshChar!.totalWins;
-  entry.losses = freshChar!.totalLosses;
+  entry.wins = freshChar.totalWins;
+  entry.losses = freshChar.totalLosses;
 
   // Find position in leaderboard
   let count = getLeaderboardCount();
@@ -165,12 +165,12 @@ export function updateLeaderboardEntry(character: Character): void {
     if (existing == null) continue;
 
     // If this is the same character, remember to remove old entry
-    if (existing!.characterId == entry.characterId) {
+    if (existing.characterId == entry.characterId) {
       // Shift all entries after this one up
       for (let j: u32 = i; j < count - 1; j++) {
         const next = loadLeaderboardEntry(j + 1);
         if (next != null) {
-          saveLeaderboardEntry(j, next!);
+          saveLeaderboardEntry(j, next);
         }
       }
       count--;
@@ -178,7 +178,7 @@ export function updateLeaderboardEntry(character: Character): void {
     }
 
     // Find insert position
-    if (insertPosition == count && entry.mmr > existing!.mmr) {
+    if (insertPosition == count && entry.mmr > existing.mmr) {
       insertPosition = i;
     }
   }
@@ -190,7 +190,7 @@ export function updateLeaderboardEntry(character: Character): void {
     for (let i = shiftEnd; i > insertPosition; i--) {
       const prev = loadLeaderboardEntry(i - 1);
       if (prev != null) {
-        saveLeaderboardEntry(i, prev!);
+        saveLeaderboardEntry(i, prev);
       }
     }
 
@@ -217,7 +217,7 @@ export function getLeaderboard(topN: u32): LeaderboardEntry[] {
   for (let i: u32 = 0; i < limit; i++) {
     const entry = loadLeaderboardEntry(i);
     if (entry != null) {
-      results.push(entry!);
+      results.push(entry);
     }
   }
 
@@ -234,7 +234,7 @@ export function getCharacterRank(characterId: string): u32 {
 
   for (let i: u32 = 0; i < count; i++) {
     const entry = loadLeaderboardEntry(i);
-    if (entry != null && entry!.characterId == characterId) {
+    if (entry != null && entry.characterId == characterId) {
       return i + 1; // 1-indexed rank
     }
   }

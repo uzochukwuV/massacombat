@@ -1,5 +1,9 @@
 /**
+<<<<<<< HEAD
  * Achievements Hook (FIXED - Binary Data Parsing)
+=======
+ * Achievements Hook
+>>>>>>> main
  * Handles achievement tracking and querying
  */
 
@@ -93,7 +97,60 @@ export function useAchievements(
   const [error, setError] = useState<string | null>(null);
 
   /**
+<<<<<<< HEAD
    * Check if achievement is unlocked
+=======
+   * Get achievements for an address
+   * @param address - Owner address
+   */
+  const getAchievements = useCallback(
+    async (address: string): Promise<AchievementTracker | null> => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const args = new Args().addString(address);
+        const result = await readContract(
+          provider,
+          contractAddress,
+          'game_getAchievements',
+          args
+        );
+
+        if (!result || !result.value || result.value.length === 0) {
+          return null;
+        }
+
+        const resultArgs = new Args(result.value);
+
+        // Parse achievement data (binary format from contract)
+        const tracker: AchievementTracker = {
+          ownerAddress: resultArgs.nextString(),
+          unlockedAchievements: Number(resultArgs.nextU16()),
+          achievements: [],
+        };
+
+        // Get unlocked achievements from bitmask
+        tracker.achievements = getUnlockedAchievements(tracker.unlockedAchievements);
+
+        return tracker;
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to get achievements';
+        setError(message);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [ loading]
+  );
+
+  /**
+   * Check if achievement is unlocked
+   * @param achievements - Achievement bitmask
+   * @param achievementId - Achievement ID (0-9)
+>>>>>>> main
    */
   const hasAchievement = useCallback(
     (achievements: number, achievementId: number): boolean => {
@@ -105,6 +162,10 @@ export function useAchievements(
 
   /**
    * Get all unlocked achievements
+<<<<<<< HEAD
+=======
+   * @param achievements - Achievement bitmask
+>>>>>>> main
    */
   const getUnlockedAchievements = useCallback(
     (achievements: number): Achievement[] => {
@@ -120,6 +181,7 @@ export function useAchievements(
   );
 
   /**
+<<<<<<< HEAD
    * Get achievements for an address (FIXED - Binary parsing)
    */
   const getAchievements = useCallback(
@@ -164,6 +226,10 @@ export function useAchievements(
 
   /**
    * Get all locked achievements
+=======
+   * Get all locked achievements
+   * @param achievements - Achievement bitmask
+>>>>>>> main
    */
   const getLockedAchievements = useCallback(
     (achievements: number): Achievement[] => {
@@ -216,6 +282,10 @@ export function useAchievements(
 
   /**
    * Check achievements for all owned characters (admin/update function)
+<<<<<<< HEAD
+=======
+   * @param ownerAddress - Owner address
+>>>>>>> main
    */
   const checkAchievements = useCallback(
     async (ownerAddress: string) => {

@@ -3,9 +3,6 @@
  * Main export file for all game hooks
  */
 
-// Wallet connection
-export * from './useWallet';
-
 // Core contract utilities
 export * from './useContract';
 
@@ -32,3 +29,5 @@ export * from './useAchievements';
 
 // Treasury and admin
 export * from './useTreasury';
+
+export *  from "./useWallet"
